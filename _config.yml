@@ -1,0 +1,10 @@
+title: "OpenPath"
+description: ""
+
+url: "http://jeppezapp.com/openpath"
+baseurl: "http://jeppezapp.com"
+
+sharedstyle: "plugin"
+header: true
+
+markdown: kramdown

@@ -1,0 +1,17 @@
+<div class="title">
+	<div class="container">
+		<img src="{{ site.url }}/png/logo_128.png" />
+	</div>
+</div>
+
+<div class="tabs">
+	<ul class="nav nav-tabs">
+		{% for index in (0..9) %}
+		{% for p in site.pages %}
+		{% if p.index == index %}
+		<li {% if p.url == page.url %}class="active"{% endif %}><a href="{{ site.url }}{{ p.url }}">{{ p.title }}</a></li>
+		{% endif %}
+		{% endfor %}
+		{% endfor %}
+	</ul>
+</div>

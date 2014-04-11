@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="{{ site.description }}">
+		
+		<title>{{ site.title }}: {{ page.title }}</title>
+		
+		<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="{{ site.baseurl }}/css/zapp.css">
+		<link rel="stylesheet" href="{{ site.baseurl }}/css/flexslider.css">
+		<link rel="stylesheet" href="{{ site.baseurl }}/css/jquery.fancybox.css" type="text/css" media="screen">	
+		{% if site.style %}
+		<link rel="stylesheet" href="{{ site.url }}/css/{{ site.style }}.css">
+		{% endif %}
+		{% if site.sharedstyle %}
+		<link rel="stylesheet" href="{{ site.baseurl }}/css/{{ site.sharedstyle }}.css">
+		{% endif %}
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+		<div class="navbar navbar-default">
+			<div class="container">
+				<a href="{{ site.baseurl }}" class="navbar-brand"> </a>
+				<div class="navbar-header">
+			  		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+			    			<span class="icon-bar"></span>
+			    			<span class="icon-bar"></span>
+			    			<span class="icon-bar"></span>
+			  		</button>
+				</div>
+				<div class="navbar-collapse collapse" id="navbar-main">
+			  		<ul class="nav navbar-nav">
+			    			<li class="dropdown">
+				      			<a class="dropdown-toggle" data-toggle="dropdown" href="#">Games <span class="caret"></span></a>
+				      			<ul class="dropdown-menu">
+								<li><a href="{{ site.baseurl }}/vongott">The Vongott Chronicles</a></li>
+								<li><a href="{{ site.baseurl }}/games/dearleader">Dear Leader</a></li>
+								<li><a href="{{ site.baseurl }}/games/rovg">Rise of the Vegan God</a></li>
+								<li><a href="{{ site.baseurl }}/games/ninjasprint">Ninja Sprint</a></li>
+								<li><a href="{{ site.baseurl }}/games/cyklus">Cyklus</a></li>
+								<li><a href="{{ site.baseurl }}/games/bashmaze">Bash Maze</a></li>
+								<li><a href="{{ site.baseurl }}/games/swordguy">Sword Guy</a></li>
+				      			</ul>
+				    		</li>
+			    			<li class="dropdown">
+				      			<a class="dropdown-toggle" data-toggle="dropdown" href="#">GUIs <span class="caret"></span></a>
+				      			<ul class="dropdown-menu">
+								<li><a target="_blank" href="{{ site.baseurl }}/ui/clamp">Clamp</a></li>
+				      			</ul>
+				    		</li>
+			    			<li class="dropdown">
+				      			<a class="dropdown-toggle" data-toggle="dropdown" href="#">Plug-ins <span class="caret"></span></a>
+				      			<ul class="dropdown-menu">
+								<li><a href="{{ site.baseurl }}/opengui">OpenGUI</a></li>
+								<li><a href="{{ site.baseurl }}/openpath">OpenPath</a></li>
+								<li><a target="_blank" href="https://github.com/mrzapp/lovetools">LoveTools</a></li>
+				      			</ul>
+				    		</li>
+				    		<li>
+				      			<a href="{{ site.baseurl }}/cv">CV</a>
+				    		</li>
+			    			<li class="dropdown">
+				      			<a class="dropdown-toggle" data-toggle="dropdown" href="#">Contact <span class="caret"></span></a>
+				      			<ul class="dropdown-menu">
+								<li><a href="http://github.com/mrzapp">GitHub</a></li>
+								<li><a href="http://linkedin.com/in/jeppezapp">LinkedIn</a></li>
+								<li><a href="http://forum.unity3d.com/members/289274-mrzapp">Unity Forums</a></li>
+								<li><a href="http://soundcloud.com/jeppezapp">SoundCloud</a></li>
+								<li><a href="mailto:contact@jeppezapp.com">Email</a></li>
+				      			</ul>
+				    		</li>
+					</ul>
+					<div class="breadcrumbs">	
+						<span class="root">{{ site.title }}</span> &raquo; {{ page.title | truncate:32 }}
+					</div>
+				</div>
+		      	</div>
+		</div>
+
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+		<script src="{{ site.baseurl }}/js/fancybox/jquery.fancybox.pack.js"></script>
+		<script src="{{ site.baseurl }}/js/flexslider.min.js"></script>
+		<script src="{{ site.baseurl }}/js/fitvids.js"></script>
+		<script src="{{ site.baseurl }}/js/app.js"></script>
+
+		{% if site.header %}
+		{% include header.html %}
+		{% endif %}
+			
+		<div class="container">
+			{% if page.date or page.postlist %}
+			<div class="postlist">
+				{% for post in site.posts %}
+				<h6>{{ post.date | date_to_string }}</h6>
+				<p><a href="{{ site.url }}{{ post.url }}">{{ post.title }}</a></p>
+				{% endfor %}
+			</div>
+			{% endif %}
+
+			<div class="content" {% if page.date or page.postlist %}style="width:80%;padding-left:30px;"{% endif %}>
+				{% if page.date %}
+				{% if page.title %}
+				<h2>{{ page.title }}</h2>
+				{% endif %}
+				{% endif %}
+
+				{% if page.author %}
+				{% if page.author_url %}
+				<p>Written by <a href="{{ page.author_url }}">{{ page.author }}</a></p>
+				{% else %}
+				<p>Written by {{ page.author }}</p>
+				{% endif %}
+				{% endif %}
+				
+				{{ content }}
+			</div>
+
+			{% if page.galleries.size > 0 %}
+			{% for gallery in page.galleries %}
+			<div class="gallery">
+				<h4>{{ gallery.title }}</h4>
+
+				{% for image in gallery.images %}
+				{% if image.url %}
+				<a href="{% if image.youtube %}http://www.youtube.com/v/{{ image.youtube }}?fs=1&amp;autoplay=1" class="youtube"{% else %}{{ image.url }}"{% endif %} id="single_image" {% if image.text %}title="{{ image.text }}"{% endif %}>
+					<div style="background-image:url('{{ image.url }}');"></div>
+				</a>
+				{% endif %}
+				{% endfor %}
+			</div>
+			{% endfor %}
+			{% endif %}
+
+			{% if page.carousel %}
+			<div class="flexslider">
+				<ul class="slides">
+					{% for slides in page.carousel %}
+					<li>
+						<img src="{{ site.url }}/{{ slides.image }}">
+						{% if slides.caption %}
+						<div class="flex-caption">
+							<p>{{ slides.caption }}</p>
+						</div>
+						{% endif %}	
+				      	</li>
+				      	{% endfor %}
+				</ul>
+			</div>
+			{% endif %}
+			
+			{% if page.youtube %}
+			<iframe width="420" height="315" src="{{ page.youtube }}?wmode=transparent" frameborder="0"> </iframe>	
+			{% endif %}
+		</div>
+
+		{% if page.cover %}
+		<div class="coverbg" style="background-image:url('{{ site.url }}/{{ page.cover }}');"> </div>
+		{% endif %}
+		{% if page.tile %}
+		<div class="tilebg" style="background-image:url('{{ site.url }}/{{ page.tile }}');"> </div>
+		{% endif %}
+		{% if page.color %}
+		<div class="colorbg" style="background-color: {{ page.color }};"> </div>
+		{% endif %}
+
+	</body>
+</html>
