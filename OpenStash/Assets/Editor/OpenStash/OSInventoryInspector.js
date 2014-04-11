@@ -4,76 +4,84 @@
 public class OSInventoryInspector extends Editor {
 	private var changeX : int = -1;
 	private var changeY : int = -1;
+	private var scrollPos : Vector2;
+
+	function OSInventoryInspector () {
+		changeX = -1;
+		changeY = -1;
+	}
+
+	private function ChangeMode ( x : int, y : int ) {
+		changeX = x;
+		changeY = y;
+	}
 	
 	override function OnInspectorGUI () {
 		var inventory : OSInventory = target as OSInventory;
-
-		var width : int = inventory.grid.GetWidth ();
-		var height : int = inventory.grid.GetHeight ();
 
 		DrawDefaultInspector ();
 
 		EditorGUILayout.Space ();
 
-		width = EditorGUILayout.IntField ( "Width", width );
-		height = EditorGUILayout.IntField ( "Height", height );
-		
-		EditorGUILayout.BeginHorizontal ();
-	
-		inventory.grid.SetDimensions ( width, height );
+		var item : OSItem;
+		var slotSize : int = 60;
 
-		EditorGUILayout.EndHorizontal ();
+		if ( changeX > -1 && changeY > -1 ) {
+			EditorGUILayout.BeginHorizontal ();
+			
+			item = inventory.GetItem ( changeX, changeY ); 
 		
-		EditorGUILayout.BeginHorizontal ();
-
-		if ( changeX > 0 && changeY > 0 ) {
-			var item : OSItem = inventory.GetSlot (changeX, changeY ); 
-			item = EditorGUILayout.ObjectField ( item as Object, typeof ( OSItem ), false ) as OSItem;
-			inventory.SetSlot ( changeX, changeY, item );
+			item = EditorGUILayout.ObjectField ( changeX + " - " + changeY, item as Object, typeof ( OSItem ), false ) as OSItem;
+			inventory.SetItem ( changeX, changeY, item );
 
 			if ( GUILayout.Button ( "Done" ) ) {
 				changeX = -1;
 				changeY = -1;
 			}
+			
+			EditorGUILayout.EndHorizontal ();
 
 		} else {
-			for ( var x : int = 0; x < width; x++ ) {
-				EditorGUILayout.BeginVertical ();
-				
-				for ( var y : int = 0; y < height; y++ ) {
+			inventory.grid.width = EditorGUILayout.IntField ( "Width", inventory.grid.width );
+			inventory.grid.height = EditorGUILayout.IntField ( "Height", inventory.grid.height );
+			
+			scrollPos = EditorGUILayout.BeginScrollView ( scrollPos );
+
+			var rect : Rect = GUILayout.GetControlRect ();	
+
+			for ( var x : int = 0; x < inventory.grid.width; x++ ) {
+				for ( var y : int = 0; y < inventory.grid.height; y++ ) {
 					var tex : Texture2D = null;
-					item = inventory.GetSlot ( x, y ); 
+					item = inventory.GetItem ( x, y ); 
 					
 					if ( item ) {
-						tex = item.thumbnail;
+						tex = item.preview;
 						
 						if ( tex ) {
-							if ( GUILayout.Button ( tex ) ) {
-								changeX = x;
-								changeY = y;
+							if ( GUI.Button ( new Rect ( xPos, yPos, slotSize * item.slotSize.x, slotSize * item.slotSize.y ), tex ) ) {
+								ChangeMode ( x, y );
 							}
 						
 						} else {
-							if ( GUILayout.Button ( item.id ) ) {
-								changeX = x;
-								changeY = y;
+							if ( GUI.Button ( new Rect ( xPos, yPos, slotSize * item.slotSize.x, slotSize * item.slotSize.y ), tex ) ) {
+								ChangeMode ( x, y );
 							}
 
 						}
 					
 					} else {
-						if ( GUILayout.Button ( x + "-" + y ) ) {
-							changeX = x;
-							changeY = y;
+						if ( GUI.Button ( new Rect ( xPos, yPos, slotSize, slotSize ), "" ) ) {
+							ChangeMode ( x, y );
 						}
 					}
 				}
 
-				EditorGUILayout.EndVertical ();
 			}
+
+
+			EditorGUILayout.EndScrollView ();
 		}
 
-		EditorGUILayout.EndHorizontal ();
 
 		if ( GUI.changed ) {
 			inventory.SortAttributes ();

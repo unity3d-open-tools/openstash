@@ -32,11 +32,43 @@ public class OSCategory {
 	}
 }
 
+public class OSGrid {
+	public var width : int = 1;
+	public var height : int = 1;
+}
+
+public class OSPoint {
+	public var x : int = 0;
+	public var y : int = 0;
+
+	function OSPoint ( x : int, y : int ) {
+		this.x = x;
+		this.y = y;
+	}
+}
+
+public class OSSlot {
+	public var item : OSItem;
+	public var x : int = 0;
+	public var y : int = 0;
+	public var quantity : int = 1;
+
+	function OSSlot () {
+
+	}
+
+	function OSSlot ( x : int, y : int, item : OSItem ) {
+		this.x = x;
+		this.y = y;
+		this.item = item;
+	}
+}
+
 public class OSInventory extends MonoBehaviour {
 	public var categories : OSCategory[] = new OSCategory [0];
 	public var attributes : String [];
-	public var items : OSItem[] = new OSItem[0];
-	public var grid : OSGrid = new OSGrid ( 0, 0 );
+	public var slots : List.< OSSlot > = new List.< OSSlot >();
+	public var grid : OSGrid = new OSGrid ();
 
 	public static var instance : OSInventory;
 
@@ -52,14 +84,6 @@ public class OSInventory extends MonoBehaviour {
 	// Sorting functions
 	public function SortAttributes () {
 		//attributes.OrderBy ();
-	}
-
-	public function AddItem ( item : OSItem ) {
-		var tmp : List.< OSItem > = new List.< OSItem > ( items );
-
-		tmp.Add ( item );
-
-		items = tmp.ToArray ();
 	}
 
 	// Get data
@@ -83,45 +107,28 @@ public class OSInventory extends MonoBehaviour {
 		return strings;
 	}
 
-	// Set items
-	public function SetSlot ( x : int, y : int, item : OSItem ) {
-		var index : int = -1;
-		
-		for ( var i : int = 0; i < items.Length; i++ ) {
-			if ( items[i] == item ) {
-				index = i;
+	// Get/set items
+	public function GetItem ( x : int, y : int ) : OSItem {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i].x == x && slots[i].y == y ) {
+				return slots[i].item;
 			}
 		}
 
-		if ( index < 0 ) {
-			AddItem ( item );
-			index = items.Length - 1;
-		}
-
-		items [ index ] = item;
-		grid.SetSlot ( x, y, index );
+		return null;
 	}
 
-	// Get items
-	public function GetSlot ( i : int ) : OSItem {
-		if ( i >= items.Length ) {
-			return null;
-
-		} else {
-			return items [ i ];			
-
+	public function SetItem ( x : int, y : int, item : OSItem ) {
+		if ( !item ) { return; }
+		
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i].item == item ) {
+				slots[i].x = x;
+				slots[i].y = y;
+				return;
+			}
 		}
-	}
-	
-	public function GetSlot ( x : int, y : int ) : OSItem {
-		var i : int = grid.GetSlot ( x, y );
 
-		if ( i >= items.Length ) {
-			return null;
-
-		} else {
-			return items [ i ];			
-
-		}
+		slots.Add ( new OSSlot ( x, y, item ) );
 	}
 }

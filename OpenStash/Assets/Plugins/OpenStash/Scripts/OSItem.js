@@ -5,17 +5,16 @@ public class OSItem extends MonoBehaviour {
 	public var description : String = "This is a new item";
 	public var catIndex : int;
 	public var subcatIndex : int;
-	public var slotWidth : int = 1;
-	public var slotHeight : int = 1;
+	public var slotSize : OSPoint = new OSPoint ( 1, 1 );
 	public var attributes : OSAttribute[] = new OSAttribute[0];
 	public var thumbnail : Texture2D;
 	public var preview : Texture2D;
 
-	public function get category () : OSCategory {
+	public function get category () : String {
 		var inventory : OSInventory = OSInventory.GetInstance ();
 
 		if ( inventory ) {
-			return inventory.categories [ catIndex ];
+			return inventory.categories [ catIndex ].id;
 		} else {
 			return null;
 		}
@@ -31,13 +30,4 @@ public class OSItem extends MonoBehaviour {
 		}
 	}
 
-	public function GetAttribute ( attribute : String ) : OSAttribute {
-		for ( var i : int = 0; i < attributes.Length; i++ ) {
-			if ( attributes[i].key == attribute ) {
-				return attributes[i];
-			}
-		}
-
-		return null;
-	}
 }

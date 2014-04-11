@@ -9,7 +9,7 @@ public class OSItemInspector extends Editor {
 		var inventory : OSInventory = OSInventory.GetInstance ();
 
 		if ( !inventory ) {
-			for ( var i : OSInventory in Resources.FindObjectsOfTypeAll (  typeof ( OSInventory ) ) ) {
+			for ( var i : OSInventory in Resources.FindObjectsOfTypeAll ( typeof ( OSInventory ) ) ) {
 				OSInventory.instance = i;
 			}
 
@@ -39,14 +39,14 @@ public class OSItemInspector extends Editor {
 		EditorGUILayout.LabelField ( "Slot dimensions", EditorStyles.boldLabel );
 		EditorGUILayout.BeginHorizontal ();
 
-		item.slotWidth = EditorGUILayout.IntField ( item.slotWidth );
+		item.slotSize.x = EditorGUILayout.IntField ( item.slotSize.x );
 		EditorGUILayout.LabelField ( "x", GUILayout.Width ( 20 ) );
-		item.slotHeight = EditorGUILayout.IntField ( item.slotHeight );
+		item.slotSize.y = EditorGUILayout.IntField ( item.slotSize.y );
 
 		EditorGUILayout.EndHorizontal ();
 		
-		if ( item.slotWidth < 1 ) { item.slotWidth = 1; }
-		if ( item.slotHeight < 1 ) { item.slotHeight = 1; }
+		if ( item.slotSize.x < 1 ) { item.slotSize.x = 1; }
+		if ( item.slotSize.y < 1 ) { item.slotSize.y = 1; }
 
 		// Attributes
 		EditorGUILayout.Space ();
