@@ -8,6 +8,7 @@ public class OSItem extends MonoBehaviour {
 	public var subcatIndex : int;
 	public var slotSize : OSPoint = new OSPoint ( 1, 1 );
 	public var attributes : OSAttribute[] = new OSAttribute[0];
+	public var ammunition : OSAmmunition = new OSAmmunition (); 
 	public var thumbnail : Texture2D;
 	public var preview : Texture2D;
 
@@ -31,7 +32,11 @@ public class OSItem extends MonoBehaviour {
 		}
 	}
 
-	public function SortAttributes () {
+	public function ChangeAmmunition ( value : int ) {
+		ammunition.value += value;
+	}
 
+	public function SetAmunition ( value : int ) {
+		ammunition.value = value;
 	}
 }

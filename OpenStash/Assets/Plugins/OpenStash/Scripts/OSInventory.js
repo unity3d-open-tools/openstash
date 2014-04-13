@@ -8,6 +8,12 @@ public class OSAttributeDefinition {
 	public var suffix : String = "points";
 }
 
+public class OSAmmunition {
+	public var enabled : boolean = true;
+	public var name : String = "Bullets";
+	public var value : float = 0;
+}
+
 public class OSAttribute {
 	public var keyIndex : int = 0;
 	public var value : float = 0;
@@ -17,6 +23,26 @@ public class OSAttribute {
 		
 		if ( inventory ) {
 			return inventory.attributes[keyIndex].id;
+		} else {
+			return "NULL";
+		}
+	}
+
+	public function get name () : String {
+		var inventory = OSInventory.GetInstance();
+		
+		if ( inventory ) {
+			return inventory.attributes[keyIndex].name;
+		} else {
+			return "NULL";
+		}
+	}
+	
+	public function get suffix () : String {
+		var inventory = OSInventory.GetInstance();
+		
+		if ( inventory ) {
+			return inventory.attributes[keyIndex].suffix;
 		} else {
 			return "NULL";
 		}
@@ -53,7 +79,20 @@ public class OSGrid {
 		this.height = height;
 	}
 
-	function GetSkippedSlots () : boolean [ , ] { 
+	public function Move ( slot : OSSlot, x : int, y : int ) {
+		if ( !slot.item ) { return; }
+		
+		if ( CheckSlot ( x, y, slot.item ) ) {
+			slot.x = x;
+			slot.y = y;
+		}
+	}
+
+	public function GetSkippedSlots () : boolean [ , ] {
+		return GetSkippedSlots ( null );
+	}
+
+	public function GetSkippedSlots ( except : OSItem ) : boolean [ , ] { 
 		if ( !inventory ) {
 			inventory = OSInventory.GetInstance ();
 		}
@@ -64,7 +103,7 @@ public class OSGrid {
 			for ( var y : int = 0; y < height; y++ ) {
 				var slot : OSSlot = inventory.GetSlot ( x, y );
 
-				if ( !slot ) { continue; }
+				if ( !slot || slot.hidden || ( slot.item != null && slot.item == except ) ) { continue; }
 				
 				for ( var sx : int = 0; sx < slot.scale.x; sx++ ) {
 					for ( var sy : int = 0; sy < slot.scale.y; sy++ ) {
@@ -81,7 +120,27 @@ public class OSGrid {
 		return skip;
 	}
 
-	function GetAvailableSlot ( item : OSItem ) : OSPoint {
+	public function CheckSlot ( x : int, y : int, item : OSItem ) : boolean {
+		if ( x < 0 || y < 0 ) {
+			return false;
+		}
+		
+		var skip : boolean [ , ] = GetSkippedSlots ( item );
+		
+		for ( var sx : int = 0; sx < item.slotSize.x; sx++ ) {
+			for ( var sy : int = 0; sy < item.slotSize.y; sy++ ) {
+				var slot : OSSlot = inventory.GetSlot ( x + sx, y + sy );
+				
+				if ( skip [ x + sx, y + sy ] || ( slot && !slot.hidden && slot.item != null && slot.item != item ) || x + sx >= width || y + sy >= height ) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public function GetAvailableSlot ( item : OSItem ) : OSPoint {
 		if ( !inventory ) {
 			inventory = OSInventory.GetInstance ();
 		}
@@ -97,7 +156,7 @@ public class OSGrid {
 					for ( var sy : int = 0; sy < item.slotSize.y; sy++ ) {
 						var slot : OSSlot = inventory.GetSlot ( x + sx, y + sy );
 
-						if ( slot && slot.item || x + sx >= width || y + sy >= height || skip [ x + sx, y + sy ] ) {
+						if ( slot && !slot.hidden && slot.item != null || x + sx >= width || y + sy >= height || skip [ x + sx, y + sy ] ) {
 							cancel = true;
 						}
 					}
@@ -136,6 +195,7 @@ public class OSSlot {
 	public var x : int = 0;
 	public var y : int = 0;
 	public var quantity : int = 1;
+	public var hidden : boolean = false;
 
 	function OSSlot () {
 
@@ -154,14 +214,6 @@ public class OSSlot {
 		} else {
 			return new OSPoint ( 1, 1 );
 		
-		}
-	}
-
-	function SetItem ( value : OSItem ) {
-		var inventory : OSInventory = OSInventory.GetInstance ();
-
-		if ( inventory ) {
-			inventory.SetItem ( x, y, value );
 		}
 	}
 }
@@ -183,12 +235,17 @@ public class OSInventory extends MonoBehaviour {
 		instance = this;
 	}
 
-	// Sorting functions
-	public function SortAttributes () {
-		attributes.Sort ( attributes, function ( a1 : OSAttributeDefinition, a2 : OSAttributeDefinition ) String.Compare ( a1.id, a2.id ) );
-	}
-
 	// Get data
+	public function GetItemIndex ( item : OSItem ) : int {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i].item == item ) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
 	public function GetAttributeStrings () : String [] {
 		var output : String [] = new String [ attributes.Length ];
 
@@ -230,13 +287,28 @@ public class OSInventory extends MonoBehaviour {
 	}
 
 	// Get/set items
+	public function RemoveItem ( item : OSItem ) {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i].item == item ) {
+				slots.RemoveAt ( i );
+			}
+		}
+	}
+	
 	public function AddItem ( item : OSItem ) : boolean {
 		if ( !item ) { return false; }
 		
 		// Check if similar item is already in the inventory
 		for ( var i : int = 0; i < slots.Count; i++ ) {
-			if ( slots[i].item == item && item.stackable ) {
-				slots[i].quantity++;
+			if ( slots[i].item == item ) {
+			       	if ( item.stackable ) {
+					slots[i].quantity++;
+				
+				} else if ( item.ammunition.enabled ) {
+					slots[i].item.ChangeAmmunition ( item.ammunition.value );
+				
+				}
+				
 				return true;
 			}
 		}
@@ -250,7 +322,7 @@ public class OSInventory extends MonoBehaviour {
 			return false;
 
 		} else {
-			SetItem ( availableSlot.x, availableSlot.y, item, true );
+			slots.Add ( new OSSlot ( availableSlot.x, availableSlot.y, item ) );
 			return true;
 
 		}
@@ -264,33 +336,5 @@ public class OSInventory extends MonoBehaviour {
 		}
 
 		return null;
-	}
-
-	public function SetItem ( x : int, y : int, item : OSItem ) {
-		SetItem ( x, y, item, false );
-	}
-
-	public function SetItem ( x : int, y : int, item : OSItem, force : boolean ) {
-		if ( !item ) { return; }
-		
-		// Check if the slot is occupied
-		for ( var i : int = 0; i < slots.Count; i++ ) {
-			if ( slots[i].x == x && slots[i].y == y && slots[i].item ) {
-				return;
-			}
-		}
-
-		// Check if item is already in the inventory
-		if ( !force ) {
-			for ( i = 0; i < slots.Count; i++ ) {
-				if ( slots[i].item == item ) {
-					slots[i].x = x;
-					slots[i].y = y;
-				}
-			}
-		}
-
-		// If not, add it
-		slots.Add ( new OSSlot ( x, y, item ) );
 	}
 }

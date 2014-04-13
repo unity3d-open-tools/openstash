@@ -55,31 +55,50 @@ public class OSItemInspector extends Editor {
 		for ( var i : int = 0; i < item.attributes.Length; i++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
-			item.attributes[i].keyIndex = EditorGUILayout.Popup ( item.attributes[i].keyIndex, inventory.GetAttributeStrings () );
-			item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
-
-			if ( GUILayout.Button ( "X" ) ) {
+			GUI.backgroundColor = Color.red;
+			if ( GUILayout.Button ( "x" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
 				var tmpAttr : List.< OSAttribute > = new List.< OSAttribute > ( item.attributes );
 
 				tmpAttr.RemoveAt ( i );
 
 				item.attributes = tmpAttr.ToArray ();
+				return;
 			}
+			GUI.backgroundColor = Color.white;
+			
+			item.attributes[i].keyIndex = EditorGUILayout.Popup ( item.attributes[i].keyIndex, inventory.GetAttributeStrings () );
+			item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
+
 			
 			EditorGUILayout.EndHorizontal ();
 		}
 		
-		if ( GUILayout.Button ( "Add" ) ) {
+		GUI.backgroundColor = Color.green;
+		if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
 			tmpAttr = new List.< OSAttribute > ( item.attributes );
 
 			tmpAttr.Add ( new OSAttribute () );
 
 			item.attributes = tmpAttr.ToArray ();
 		}
-		
+		GUI.backgroundColor = Color.white;
+
 		EditorGUILayout.EndVertical ();
 
 		EditorGUILayout.EndHorizontal ();
+		
+		// Ammunition
+		EditorGUILayout.Space ();
+	
+		EditorGUILayout.BeginHorizontal ();	
+		EditorGUILayout.LabelField ( "Ammunition", EditorStyles.boldLabel, GUILayout.Width ( 80 ) );
+		item.ammunition.enabled = EditorGUILayout.Toggle ( item.ammunition.enabled );
+		EditorGUILayout.EndHorizontal ();
+
+		if ( item.ammunition.enabled ) {
+			item.ammunition.name = EditorGUILayout.TextField ( "Name", item.ammunition.name );
+			item.ammunition.value = EditorGUILayout.IntField ( "Amount", item.ammunition.value );
+		}
 
 		// Textures
 		EditorGUILayout.Space ();
@@ -89,7 +108,6 @@ public class OSItemInspector extends Editor {
 		item.preview = EditorGUILayout.ObjectField ( "Preview", item.preview as Object, typeof ( Texture2D ), false ) as Texture2D;
 
 		if ( GUI.changed ) {
-			item.SortAttributes ();
 			OSInventoryInspector.SavePrefab ( target );
 		}
 	}
