@@ -34,17 +34,14 @@ public class OSItemInspector extends Editor {
 		
 		item.subcatIndex = EditorGUILayout.Popup ( "Subcategory", item.subcatIndex, inventory.categories [ item.catIndex ].subcategories );
 		
-		// Slot width and height
+		// Slot
 		EditorGUILayout.Space ();
-		EditorGUILayout.LabelField ( "Slot dimensions", EditorStyles.boldLabel );
-		EditorGUILayout.BeginHorizontal ();
-
-		item.slotSize.x = EditorGUILayout.IntField ( item.slotSize.x );
-		EditorGUILayout.LabelField ( "x", GUILayout.Width ( 20 ) );
-		item.slotSize.y = EditorGUILayout.IntField ( item.slotSize.y );
-
-		EditorGUILayout.EndHorizontal ();
+		EditorGUILayout.LabelField ( "Slot properties", EditorStyles.boldLabel );
+		item.stackable = EditorGUILayout.Toggle ( "Stackable", item.stackable );
 		
+		item.slotSize.x = EditorGUILayout.IntField ( "Width", item.slotSize.x );
+		item.slotSize.y = EditorGUILayout.IntField ( "Height", item.slotSize.y );
+
 		if ( item.slotSize.x < 1 ) { item.slotSize.x = 1; }
 		if ( item.slotSize.y < 1 ) { item.slotSize.y = 1; }
 

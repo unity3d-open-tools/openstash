@@ -2,91 +2,99 @@
 
 @CustomEditor ( OSInventory )
 public class OSInventoryInspector extends Editor {
-	private var changeX : int = -1;
-	private var changeY : int = -1;
 	private var scrollPos : Vector2;
 
-	function OSInventoryInspector () {
-		changeX = -1;
-		changeY = -1;
-	}
-
-	private function ChangeMode ( x : int, y : int ) {
-		changeX = x;
-		changeY = y;
-	}
-	
 	override function OnInspectorGUI () {
 		var inventory : OSInventory = target as OSInventory;
 
+		OSInventory.instance = inventory;
+		
 		DrawDefaultInspector ();
 
 		EditorGUILayout.Space ();
 
-		var item : OSItem;
+		var slot : OSSlot;
 		var slotSize : int = 60;
 
-		if ( changeX > -1 && changeY > -1 ) {
-			EditorGUILayout.BeginHorizontal ();
-			
-			item = inventory.GetItem ( changeX, changeY ); 
+		inventory.grid.width = EditorGUILayout.IntField ( "Width", inventory.grid.width );
+		inventory.grid.height = EditorGUILayout.IntField ( "Height", inventory.grid.height );
 		
-			item = EditorGUILayout.ObjectField ( changeX + " - " + changeY, item as Object, typeof ( OSItem ), false ) as OSItem;
-			inventory.SetItem ( changeX, changeY, item );
+		scrollPos = EditorGUILayout.BeginScrollView ( scrollPos );
 
-			if ( GUILayout.Button ( "Done" ) ) {
-				changeX = -1;
-				changeY = -1;
-			}
-			
-			EditorGUILayout.EndHorizontal ();
+		var rect : Rect = EditorGUILayout.GetControlRect ( GUILayout.Width ( slotSize * inventory.grid.width ), GUILayout.Height ( slotSize * inventory.grid.height ) );	
 
-		} else {
-			inventory.grid.width = EditorGUILayout.IntField ( "Width", inventory.grid.width );
-			inventory.grid.height = EditorGUILayout.IntField ( "Height", inventory.grid.height );
-			
-			scrollPos = EditorGUILayout.BeginScrollView ( scrollPos );
+		var xPos : int = rect.x;
+		var yPos : int = rect.y;
+		var skip : boolean [ , ] = inventory.grid.GetSkippedSlots();
 
-			var rect : Rect = GUILayout.GetControlRect ();	
-
-			for ( var x : int = 0; x < inventory.grid.width; x++ ) {
-				for ( var y : int = 0; y < inventory.grid.height; y++ ) {
+		for ( var x : int = 0; x < inventory.grid.width; x++ ) {
+			for ( var y : int = 0; y < inventory.grid.height; y++ ) {
+				if ( skip [ x, y ] == true ) {
+					continue;
+				
+				} else {
 					var tex : Texture2D = null;
-					item = inventory.GetItem ( x, y ); 
+					var item : OSItem;
+					slot = inventory.GetSlot ( x, y ); 
 					
-					if ( item ) {
+					xPos = rect.x + x * slotSize;
+					yPos = rect.y + y * slotSize;
+
+					if ( slot && slot.item ) {
+						item = slot.item;
+						
 						tex = item.preview;
+					
+						GUI.Box ( new Rect ( xPos, yPos, slotSize * slot.scale.x, slotSize * slot.scale.y ), "" );
 						
 						if ( tex ) {
-							if ( GUI.Button ( new Rect ( xPos, yPos, slotSize * item.slotSize.x, slotSize * item.slotSize.y ), tex ) ) {
-								ChangeMode ( x, y );
-							}
+							GUI.DrawTexture ( new Rect ( xPos, yPos, slotSize * slot.scale.x, slotSize * slot.scale.y ), tex );
+						}
 						
-						} else {
-							if ( GUI.Button ( new Rect ( xPos, yPos, slotSize * item.slotSize.x, slotSize * item.slotSize.y ), tex ) ) {
-								ChangeMode ( x, y );
-							}
+						GUI.color = new Color ( 0, 0, 0, 0 );
+						//item = EditorGUI.ObjectField ( new Rect ( xPos, yPos, slotSize * slot.scale.x, slotSize * slot.scale.y ), item, OSItem, false ) as OSItem; 
+						GUI.color = Color.white;
 
+						if ( slot.quantity > 1 ) {
+							GUI.Label ( new Rect ( xPos + 4, yPos + slot.scale.y * slotSize - 20, slot.scale.x * slotSize, 20 ), slot.quantity.ToString() );
 						}
-					
+
 					} else {
-						if ( GUI.Button ( new Rect ( xPos, yPos, slotSize, slotSize ), "" ) ) {
-							ChangeMode ( x, y );
-						}
-					}
-				}
+						GUI.Box ( new Rect ( xPos, yPos, slotSize, slotSize ), "" );
+						
+						GUI.color = new Color ( 0, 0, 0, 0 );
+						//item = EditorGUI.ObjectField ( new Rect ( xPos, yPos, slotSize, slotSize ), item, OSItem, false ) as OSItem; 
+						GUI.color = Color.white;
 
+					}
+
+					inventory.SetItem ( x, y, item );
+
+				}
+				
 			}
 
-
-			EditorGUILayout.EndScrollView ();
 		}
+
+		EditorGUILayout.Space ();
+
+		var addItem : OSItem;
+		addItem = EditorGUILayout.ObjectField ( "Add item", addItem, OSItem, false ) as OSItem;
+
+		if ( addItem ) {
+			inventory.AddItem ( addItem );
+		}
+
+		if ( GUILayout.Button ( "Clear inventory" ) ) {
+			inventory.slots.Clear ();
+		}
+
+
+		EditorGUILayout.EndScrollView ();
 
 
 		if ( GUI.changed ) {
 			inventory.SortAttributes ();
 		}
-
-		OSInventory.instance = inventory;
 	}
 }

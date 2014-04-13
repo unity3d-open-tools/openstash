@@ -3,6 +3,7 @@
 public class OSItem extends MonoBehaviour {
 	public var id : String = "New Item";
 	public var description : String = "This is a new item";
+	public var stackable : boolean = false;
 	public var catIndex : int;
 	public var subcatIndex : int;
 	public var slotSize : OSPoint = new OSPoint ( 1, 1 );
