@@ -130,8 +130,8 @@ public class OSGrid {
 		for ( var sx : int = 0; sx < item.slotSize.x; sx++ ) {
 			for ( var sy : int = 0; sy < item.slotSize.y; sy++ ) {
 				var slot : OSSlot = inventory.GetSlot ( x + sx, y + sy );
-				
-				if ( skip [ x + sx, y + sy ] || ( slot && !slot.hidden && slot.item != null && slot.item != item ) || x + sx >= width || y + sy >= height ) {
+
+				if ( ( x + sx < skip.GetLength(0) && y + sy < skip.GetLength(1) && skip [ x + sx, y + sy ] ) || ( slot && !slot.hidden && slot.item != null && slot.item != item ) || x + sx >= width || y + sy >= height ) {
 					return false;
 				}
 			}
@@ -183,6 +183,18 @@ public class OSPoint {
 	function OSPoint ( x : int, y : int ) {
 		this.x = x;
 		this.y = y;
+	}
+
+	function OSPoint ( str : String, sep : char, reverse : boolean ) {
+		var strings : String[] = str.Split ( sep );
+
+		if ( !reverse ) {
+			this.x = int.Parse ( strings[0] );
+			this.y = int.Parse ( strings[1] );
+		} else {
+			this.y = int.Parse ( strings[0] );
+			this.x = int.Parse ( strings[1] );
+		}
 	}
 
 	public static function IsNullOrNegative ( p : OSPoint ) {
