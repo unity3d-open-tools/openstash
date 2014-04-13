@@ -2,27 +2,50 @@
 
 @CustomEditor ( OSInventory )
 public class OSInventoryInspector extends Editor {
-	private var scrollPos : Vector2;
+	public static function SavePrefab ( target : UnityEngine.Object ) {
+		var selectedGameObject : GameObject;
+		var selectedPrefabType : PrefabType;
+		var parentGameObject : GameObject;
+		var prefabParent : UnityEngine.Object;
+		     
+		selectedGameObject = Selection.gameObjects[0];
+		selectedPrefabType = PrefabUtility.GetPrefabType(selectedGameObject);
+		parentGameObject = selectedGameObject.transform.root.gameObject;
+		prefabParent = PrefabUtility.GetPrefabParent(selectedGameObject);
+		     
+		EditorUtility.SetDirty(target);
+		     
+		if (selectedPrefabType == PrefabType.PrefabInstance) {
+			PrefabUtility.ReplacePrefab(parentGameObject, prefabParent,
+			ReplacePrefabOptions.ConnectToPrefab);
+	    	}
+	}
 
 	override function OnInspectorGUI () {
 		var inventory : OSInventory = target as OSInventory;
 
 		OSInventory.instance = inventory;
 		
-		DrawDefaultInspector ();
-
-		EditorGUILayout.Space ();
+		// Grid
+		EditorGUILayout.LabelField ( "Grid", EditorStyles.boldLabel );
 
 		var slot : OSSlot;
 		var slotSize : int = 60;
 
-		inventory.grid.width = EditorGUILayout.IntField ( "Width", inventory.grid.width );
-		inventory.grid.height = EditorGUILayout.IntField ( "Height", inventory.grid.height );
+		EditorGUILayout.BeginHorizontal ();
 		
-		scrollPos = EditorGUILayout.BeginScrollView ( scrollPos );
-
+		GUILayout.Space ( 34 );
+		inventory.grid.width = EditorGUILayout.IntField ( inventory.grid.width, GUILayout.Width ( 30 ) );
+		
+		EditorGUILayout.EndHorizontal ();
+		
+		GUILayout.Space ( 4 );
+		
+		EditorGUILayout.BeginHorizontal ();
+	
+		inventory.grid.height = EditorGUILayout.IntField ( inventory.grid.height, GUILayout.Width ( 30 ) );
+		
 		var rect : Rect = EditorGUILayout.GetControlRect ( GUILayout.Width ( slotSize * inventory.grid.width ), GUILayout.Height ( slotSize * inventory.grid.height ) );	
-
 		var xPos : int = rect.x;
 		var yPos : int = rect.y;
 		var skip : boolean [ , ] = inventory.grid.GetSkippedSlots();
@@ -75,6 +98,8 @@ public class OSInventoryInspector extends Editor {
 			}
 
 		}
+		
+		EditorGUILayout.EndHorizontal ();
 
 		EditorGUILayout.Space ();
 
@@ -89,12 +114,64 @@ public class OSInventoryInspector extends Editor {
 			inventory.slots.Clear ();
 		}
 
+		// Categories
+		EditorGUILayout.Space ();
+		EditorGUILayout.LabelField ( "Categories", EditorStyles.boldLabel );
+		
+		var tmpCat : List.< OSCategory >;
+		var tmpStr : List.< String >;
 
-		EditorGUILayout.EndScrollView ();
+		for ( var c : int = 0; c < inventory.categories.Length; c++ ) {
+			EditorGUILayout.BeginHorizontal ();
+			
+			inventory.categories[c].id = EditorGUILayout.TextField ( inventory.categories[c].id );
+			
+			GUI.backgroundColor = Color.red;
+			if ( GUILayout.Button ( "X", GUILayout.Width ( 20 ) ) ) {
+				tmpCat = new List.< OSCategory > ( inventory.categories );
 
+				tmpCat.RemoveAt ( c );
+
+				inventory.categories = tmpCat.ToArray ();
+				return;
+			}
+			GUI.backgroundColor = Color.white;
+			
+			EditorGUILayout.EndHorizontal ();
+			
+			for ( var sc : int = 0; sc < inventory.categories[c].subcategories.Length; sc++ ) {
+				EditorGUILayout.BeginHorizontal ();
+				
+				inventory.categories[c].subcategories[sc] = EditorGUILayout.TextField ( " ", inventory.categories[c].subcategories[sc] );
+				
+				GUI.backgroundColor = Color.red;
+				if ( GUILayout.Button ( "X", GUILayout.Width ( 20 ) ) ) {
+					tmpStr = new List.< String > ( inventory.categories[c].subcategories );
+
+					tmpStr.RemoveAt ( sc );
+
+					inventory.categories[c].subcategories = tmpStr.ToArray ();
+					return;
+				}
+				GUI.backgroundColor = Color.white;
+				
+				EditorGUILayout.EndHorizontal ();
+			}
+
+			EditorGUILayout.Space ();
+		}
+
+		
+		if ( GUILayout.Button ( "Add category" ) ) {
+			tmpCat = new List.< OSCategory > ( inventory.categories );
+
+			tmpCat.Add ( new OSCategory () );
+
+			inventory.categories = tmpCat.ToArray ();
+		}
 
 		if ( GUI.changed ) {
-			inventory.SortAttributes ();
+			SavePrefab ( target );
 		}
 	}
 }

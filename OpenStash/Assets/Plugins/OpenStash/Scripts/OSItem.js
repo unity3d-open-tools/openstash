@@ -31,4 +31,7 @@ public class OSItem extends MonoBehaviour {
 		}
 	}
 
+	public function SortAttributes () {
+
+	}
 }

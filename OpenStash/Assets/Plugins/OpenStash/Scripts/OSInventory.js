@@ -2,15 +2,21 @@
 
 import System.Collections.Generic;
 
+public class OSAttributeDefinition {
+	public var id : String = "newAttribute";
+	public var name : String = "New Attribute";
+	public var suffix : String = "points";
+}
+
 public class OSAttribute {
 	public var keyIndex : int = 0;
 	public var value : float = 0;
 	
-	public function get key () : String {
+	public function get id () : String {
 		var inventory = OSInventory.GetInstance();
 		
 		if ( inventory ) {
-			return inventory.attributes[keyIndex];
+			return inventory.attributes[keyIndex].id;
 		} else {
 			return "NULL";
 		}
@@ -162,7 +168,7 @@ public class OSSlot {
 
 public class OSInventory extends MonoBehaviour {
 	public var categories : OSCategory[] = new OSCategory [0];
-	public var attributes : String [];
+	public var attributes : OSAttributeDefinition [];
 	public var slots : List.< OSSlot > = new List.< OSSlot >();
 	public var grid : OSGrid = new OSGrid ( this, 5, 3 );
 
@@ -179,10 +185,20 @@ public class OSInventory extends MonoBehaviour {
 
 	// Sorting functions
 	public function SortAttributes () {
-		//attributes.OrderBy ();
+		attributes.Sort ( attributes, function ( a1 : OSAttributeDefinition, a2 : OSAttributeDefinition ) String.Compare ( a1.id, a2.id ) );
 	}
 
 	// Get data
+	public function GetAttributeStrings () : String [] {
+		var output : String [] = new String [ attributes.Length ];
+
+		for ( var i : int = 0; i < attributes.Length; i++ ) {
+			output[i] = attributes[i].id; 
+		}
+
+		return output;
+	}
+	
 	public function GetCategoryIndex ( id : String ) : int {
 		for ( var i : int = 0; i < categories.Length; i++ ) {
 			if ( categories[i] && categories[i].id == id ) {

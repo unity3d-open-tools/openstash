@@ -55,7 +55,7 @@ public class OSItemInspector extends Editor {
 		for ( var i : int = 0; i < item.attributes.Length; i++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
-			item.attributes[i].keyIndex = EditorGUILayout.Popup ( item.attributes[i].keyIndex, inventory.attributes );
+			item.attributes[i].keyIndex = EditorGUILayout.Popup ( item.attributes[i].keyIndex, inventory.GetAttributeStrings () );
 			item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
 
 			if ( GUILayout.Button ( "X" ) ) {
@@ -87,5 +87,10 @@ public class OSItemInspector extends Editor {
 
 		item.thumbnail = EditorGUILayout.ObjectField ( "Thumbnail", item.thumbnail as Object, typeof ( Texture2D ), false ) as Texture2D;
 		item.preview = EditorGUILayout.ObjectField ( "Preview", item.preview as Object, typeof ( Texture2D ), false ) as Texture2D;
+
+		if ( GUI.changed ) {
+			item.SortAttributes ();
+			OSInventoryInspector.SavePrefab ( target );
+		}
 	}
 }
