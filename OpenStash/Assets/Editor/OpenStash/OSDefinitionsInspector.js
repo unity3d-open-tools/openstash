@@ -102,9 +102,17 @@ public class OSDefinitionsInspector extends Editor {
 			
 			EditorGUILayout.BeginVertical ();
 
-			definitions.attributes[a].id = EditorGUILayout.TextField ( "ID", definitions.attributes[a].id );
-			definitions.attributes[a].name = EditorGUILayout.TextField ( "Name", definitions.attributes[a].name );
-			definitions.attributes[a].suffix = EditorGUILayout.TextField ( "Suffix", definitions.attributes[a].suffix );
+			definitions.attributes[a].id = EditorGUILayout.TextField ( definitions.attributes[a].id );
+			
+			EditorGUILayout.BeginHorizontal ();
+			EditorGUILayout.LabelField ( "Name", GUILayout.Width ( 100 ) ); 
+			definitions.attributes[a].name = EditorGUILayout.TextField ( definitions.attributes[a].name );
+			EditorGUILayout.EndHorizontal ();
+			
+			EditorGUILayout.BeginHorizontal ();
+			EditorGUILayout.LabelField ( "Suffix", GUILayout.Width ( 100 ) ); 
+			definitions.attributes[a].suffix = EditorGUILayout.TextField ( definitions.attributes[a].suffix );
+			EditorGUILayout.EndHorizontal ();
 			
 			EditorGUILayout.EndVertical ();
 

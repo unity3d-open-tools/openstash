@@ -24,7 +24,13 @@ public class OSItemInspector extends Editor {
 			if ( !Application.isPlaying ) {
 				EditorGUILayout.BeginHorizontal ();
 				var str : String = "Get prefab path";
-				if ( !String.IsNullOrEmpty ( item.prefabPath ) ) { str = item.prefabPath; }
+				
+				if ( !String.IsNullOrEmpty ( item.prefabPath ) ) {
+					str = item.prefabPath;
+				} else {
+					GUI.color = Color.green;
+				}
+
 				if ( GUILayout.Button ( str ) ) {
 					var path : String = AssetDatabase.GetAssetPath ( item.gameObject );
 					path = path.Replace ( "Assets/Resources/", "" );
@@ -32,6 +38,9 @@ public class OSItemInspector extends Editor {
 
 					item.prefabPath = path;
 				}
+
+				GUI.color = Color.white;
+
 				EditorGUILayout.EndHorizontal ();
 			}
 
