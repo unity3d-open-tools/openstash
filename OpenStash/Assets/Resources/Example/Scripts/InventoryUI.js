@@ -79,14 +79,13 @@ public class InventoryUI extends MonoBehaviour {
 
 	// Drop selected item
 	public function Drop () {
-		if ( selectedSlot ) {
+		if ( !dragging && selectedSlot ) {
 			if ( equippedItem == selectedSlot.item ) {
 				equippedItem = null;
 			}
 			
 			inventory.SpawnSlot ( selectedSlot, scene, new Vector3 ( 0, 0.5, 2.3 ) );
 			inventory.RemoveSlot ( selectedSlot );
-			dragging = false;
 		}
 	}
 
@@ -102,7 +101,7 @@ public class InventoryUI extends MonoBehaviour {
 
 	// Consume item
 	public function Consume () {
-		if ( selectedSlot && selectedSlot.item ) {
+		if ( !dragging && selectedSlot && selectedSlot.item ) {
 			var healFactor : float = selectedSlot.item.GetAttribute ( "heal" );
 
 			if ( healFactor > 0 && healFactor < maxHealth ) {
@@ -116,7 +115,7 @@ public class InventoryUI extends MonoBehaviour {
 
 	// Equip/unequip item
 	public function Equip () {
-		if ( selectedSlot && selectedSlot.item ) {
+		if ( !dragging && selectedSlot && selectedSlot.item ) {
 			equippedItem = selectedSlot.item;
 		}
 	}
