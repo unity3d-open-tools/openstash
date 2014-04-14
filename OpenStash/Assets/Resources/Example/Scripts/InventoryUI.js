@@ -9,6 +9,7 @@ public class InventoryUI extends MonoBehaviour {
 	public var action : OGButton;
 	public var drop : OGButton;
 	public var healthBar : OGProgressBar;
+	public var equippedTex : OGTexture;
 	public var scene : Transform;
 
 	private var dragging : boolean = false;
@@ -79,6 +80,10 @@ public class InventoryUI extends MonoBehaviour {
 	// Drop selected item
 	public function Drop () {
 		if ( selectedSlot ) {
+			if ( equippedItem == selectedSlot.item ) {
+				equippedItem = null;
+			}
+			
 			inventory.SpawnSlot ( selectedSlot, scene, new Vector3 ( 0, 0.5, 2.3 ) );
 			inventory.RemoveSlot ( selectedSlot );
 			dragging = false;
@@ -109,6 +114,17 @@ public class InventoryUI extends MonoBehaviour {
 		}
 	}
 
+	// Equip/unequip item
+	public function Equip () {
+		if ( selectedSlot && selectedSlot.item ) {
+			equippedItem = selectedSlot.item;
+		}
+	}
+
+	public function Unequip () {
+		equippedItem = null;
+	}
+
 	function Update () {
 		if ( !inventory ) {
 			return;
@@ -116,7 +132,15 @@ public class InventoryUI extends MonoBehaviour {
 
 		// Update the OGProgressBar
 		healthBar.value = health / maxHealth;
-		
+	
+		// Update the OGTexture
+		if ( equippedItem ) {
+			equippedTex.mainTexture = equippedItem.preview;
+			equippedTex.transform.localScale = new Vector3 ( equippedItem.slotSize.x * slotSize, equippedItem.slotSize.y * slotSize, 1 );
+		} else {
+			equippedTex.mainTexture = null;
+		}
+
 		// Keep the drag texture underneath the mouse...
 		dragTexture.transform.position = new Vector3 ( Input.mousePosition.x - slotSize / 2, Screen.height - Input.mousePosition.y - slotSize / 2, 0 );
 

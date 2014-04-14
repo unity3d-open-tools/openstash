@@ -195,17 +195,19 @@ public class OSInventory extends MonoBehaviour {
 	// Get/set items
 	public function SpawnSlot ( slot : OSSlot, parent : Transform, position : Vector3 ) {
 		if ( !slot.item ) { return; }
-		
-		var go : GameObject = Instantiate ( Resources.Load ( slot.item.prefabPath ) ) as GameObject;
-		var scale : Vector3 = go.transform.localScale;
-		var oldItem : OSItem = slot.item; 
-		var newItem : OSItem = go.GetComponent.< OSItem > ();
+	
+		for ( var i : int = 0; i < slot.quantity; i++ ) {	
+			var go : GameObject = Instantiate ( Resources.Load ( slot.item.prefabPath ) ) as GameObject;
+			var scale : Vector3 = go.transform.localScale;
+			var oldItem : OSItem = slot.item; 
+			var newItem : OSItem = go.GetComponent.< OSItem > ();
 
-		newItem.AdoptValues ( oldItem );
+			newItem.AdoptValues ( oldItem );
 
-		go.transform.parent = parent;
-		go.transform.position = position;
-		go.transform.localScale = scale;
+			go.transform.parent = parent;
+			go.transform.position = position;
+			go.transform.localScale = scale;
+		}
 	}
 	
 	public function DecreaseSlot ( slot : OSSlot ) {
