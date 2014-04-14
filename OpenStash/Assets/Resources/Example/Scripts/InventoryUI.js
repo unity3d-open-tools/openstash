@@ -86,6 +86,9 @@ public class InventoryUI extends MonoBehaviour {
 			
 			inventory.SpawnSlot ( selectedSlot, scene, new Vector3 ( 0, 0.5, 2.3 ) );
 			inventory.RemoveSlot ( selectedSlot );
+
+			selectedSlot = null;
+			info.text = "";
 		}
 	}
 
