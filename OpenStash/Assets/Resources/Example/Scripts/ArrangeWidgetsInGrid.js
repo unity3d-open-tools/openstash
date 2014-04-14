@@ -2,6 +2,7 @@
 
 @script ExecuteInEditMode()
 
+import System.Collections.Generic;
 import System.Linq;
 
 public class ArrangeWidgetsInGrid extends MonoBehaviour {

@@ -1,6 +1,5 @@
 ﻿#pragma strict
 
-@script ExecuteInEditMode()
 public class InventoryUI extends MonoBehaviour {
 	public var inventory : OSInventory;
 	public var slotSize : float = 64;

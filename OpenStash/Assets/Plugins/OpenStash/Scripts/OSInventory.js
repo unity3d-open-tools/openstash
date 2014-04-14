@@ -2,73 +2,17 @@
 
 import System.Collections.Generic;
 
-public class OSAttributeDefinition {
-	public var id : String = "newAttribute";
-	public var name : String = "New Attribute";
-	public var suffix : String = "points";
-}
-
 public class OSAmmunition {
 	public var enabled : boolean = true;
 	public var name : String = "Bullets";
 	public var value : float = 0;
 }
 
-public class OSAttribute {
-	public var keyIndex : int = 0;
-	public var value : float = 0;
-	
-	public function get id () : String {
-		var inventory = OSInventory.GetInstance();
-		
-		if ( inventory ) {
-			return inventory.attributes[keyIndex].id;
-		} else {
-			return "NULL";
-		}
-	}
-
-	public function get name () : String {
-		var inventory = OSInventory.GetInstance();
-		
-		if ( inventory ) {
-			return inventory.attributes[keyIndex].name;
-		} else {
-			return "NULL";
-		}
-	}
-	
-	public function get suffix () : String {
-		var inventory = OSInventory.GetInstance();
-		
-		if ( inventory ) {
-			return inventory.attributes[keyIndex].suffix;
-		} else {
-			return "NULL";
-		}
-	}
-}
-
-public class OSCategory {
-	public var id : String = "NewType";
-	public var subcategories : String[] = new String[0];
-	
-	public function GetSubcategoryIndex ( id : String ) : int {
-		for ( var i : int = 0; i < subcategories.Length; i++ ) {
-			if ( subcategories[i] && subcategories[i] == id ) {
-				return i;
-			}
-		}
-		
-		return 0;
-	}
-}
-
 public class OSGrid {
 	public var width : int = 1;
 	public var height : int = 1;
 
-	private var inventory : OSInventory;
+	public var inventory : OSInventory;
 	
 	function OSGrid ( inventory : OSInventory ) {
 		this.inventory = inventory;
@@ -93,10 +37,6 @@ public class OSGrid {
 	}
 
 	public function GetSkippedSlots ( except : OSItem ) : boolean [ , ] { 
-		if ( !inventory ) {
-			inventory = OSInventory.GetInstance ();
-		}
-		
 		var skip : boolean [ , ] = new boolean [ width, height ];
 
 		for ( var x : int = 0; x < width; x++ ) {
@@ -140,11 +80,7 @@ public class OSGrid {
 		return true;
 	}
 
-	public function GetAvailableSlot ( item : OSItem ) : OSPoint {
-		if ( !inventory ) {
-			inventory = OSInventory.GetInstance ();
-		}
-		
+	public function GetAvailableCell ( item : OSItem ) : OSPoint {
 		var skip : boolean [ , ] = GetSkippedSlots ();
 
 		for ( var y : int = 0; y < height; y++ ) {
@@ -231,21 +167,9 @@ public class OSSlot {
 }
 
 public class OSInventory extends MonoBehaviour {
-	public var categories : OSCategory[] = new OSCategory [0];
-	public var attributes : OSAttributeDefinition [];
+	public var definitions : OSDefinitions;
 	public var slots : List.< OSSlot > = new List.< OSSlot >();
 	public var grid : OSGrid = new OSGrid ( this, 5, 3 );
-
-	public static var instance : OSInventory;
-
-	public static function GetInstance () : OSInventory {
-		return instance;
-	}
-
-	// Init
-	public function Start () {
-		instance = this;
-	}
 
 	// Get data
 	public function GetItemIndex ( item : OSItem ) : int {
@@ -258,36 +182,6 @@ public class OSInventory extends MonoBehaviour {
 		return -1;
 	}
 	
-	public function GetAttributeStrings () : String [] {
-		var output : String [] = new String [ attributes.Length ];
-
-		for ( var i : int = 0; i < attributes.Length; i++ ) {
-			output[i] = attributes[i].id; 
-		}
-
-		return output;
-	}
-	
-	public function GetCategoryIndex ( id : String ) : int {
-		for ( var i : int = 0; i < categories.Length; i++ ) {
-			if ( categories[i] && categories[i].id == id ) {
-				return i;
-			}
-		}
-		
-		return 0;
-	}
-
-	public function GetCategoryStrings () : String [] {
-		var strings : String[] = new String [ categories.Length ];
-
-		for ( var i : int = 0; i < categories.Length; i++ ) {
-			strings[i] = categories[i].id;
-		}
-
-		return strings;
-	}
-
 	public function GetSlot ( x : int, y : int ) : OSSlot {
 		for ( var i : int = 0; i < slots.Count; i++ ) {
 			if ( slots[i].x == x && slots[i].y == y ) {
@@ -307,12 +201,24 @@ public class OSInventory extends MonoBehaviour {
 		}
 	}
 	
+	public function AddItemFromScene ( sceneItem : OSItem ) : boolean {
+		if ( !sceneItem ) { return false; }
+		
+		var go : GameObject = Resources.Load ( sceneItem.prefabPath ) as GameObject;
+
+		Destroy ( sceneItem.gameObject );
+
+		return AddItem ( go.GetComponent.< OSItem > () );
+	}
+
 	public function AddItem ( item : OSItem ) : boolean {
 		if ( !item ) { return false; }
-		
+	
+		item.definitions = this.definitions;
+
 		// Check if similar item is already in the inventory
 		for ( var i : int = 0; i < slots.Count; i++ ) {
-			if ( slots[i].item == item ) {
+			if ( slots[i].item.id == item.id ) {
 			       	if ( item.stackable ) {
 					slots[i].quantity++;
 				
@@ -326,15 +232,15 @@ public class OSInventory extends MonoBehaviour {
 		}
 		
 		// If not, search for available slots
-		var availableSlot : OSPoint = new OSPoint ( -1, -1 );
+		var availableCell : OSPoint = new OSPoint ( -1, -1 );
 
-		availableSlot = grid.GetAvailableSlot ( item );
+		availableCell = grid.GetAvailableCell ( item );
 
-		if ( OSPoint.IsNullOrNegative ( availableSlot ) ) {
+		if ( OSPoint.IsNullOrNegative ( availableCell ) ) {
 			return false;
 
 		} else {
-			slots.Add ( new OSSlot ( availableSlot.x, availableSlot.y, item ) );
+			slots.Add ( new OSSlot ( availableCell.x, availableCell.y, item ) );
 			return true;
 
 		}

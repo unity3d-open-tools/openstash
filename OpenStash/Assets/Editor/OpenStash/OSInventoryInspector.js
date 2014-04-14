@@ -2,9 +2,6 @@
 
 @CustomEditor ( OSInventory )
 public class OSInventoryInspector extends Editor {
-	private static var showCategories : boolean = false;
-	private static var showAttributes : boolean = false;
-	
 	private var selected : OSSlot;
 
 	public static function SavePrefab ( target : UnityEngine.Object ) {
@@ -28,10 +25,21 @@ public class OSInventoryInspector extends Editor {
 
 	override function OnInspectorGUI () {
 		var inventory : OSInventory = target as OSInventory;
+		inventory.definitions = EditorGUILayout.ObjectField ( "Definitions", inventory.definitions, typeof ( OSDefinitions ), false ) as OSDefinitions;
+		
+		if ( !inventory.definitions ) {
+			GUI.color = Color.red;
+			EditorGUILayout.LabelField ( "You need to link an OSDefinitions prefab with this inventory", EditorStyles.boldLabel );
+			GUI.color = Color.white;
+			return;
+		}
+		
+		EditorGUILayout.Space ();
+
 		var event : Event = Event.current;
 
-		OSInventory.instance = inventory;
-		
+		inventory.grid.inventory = inventory;
+
 		// Grid
 		var slot : OSSlot;
 		var slotSize : int = 60;
@@ -216,130 +224,6 @@ public class OSInventoryInspector extends Editor {
 
 		}
 
-		// Categories
-		EditorGUILayout.Space ();
-		showCategories = EditorGUILayout.Foldout ( showCategories, "Categories" );
-		
-		if ( showCategories ) {
-			var tmpCat : List.< OSCategory >;
-			var tmpStr : List.< String >;
-
-			for ( var c : int = 0; c < inventory.categories.Length; c++ ) {
-				EditorGUILayout.BeginHorizontal ();
-				
-				GUI.backgroundColor = Color.red;
-				if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					tmpCat = new List.< OSCategory > ( inventory.categories );
-
-					tmpCat.RemoveAt ( c );
-
-					inventory.categories = tmpCat.ToArray ();
-					return;
-				}
-				GUI.backgroundColor = Color.white;
-				
-				inventory.categories[c].id = EditorGUILayout.TextField ( inventory.categories[c].id );
-				
-				EditorGUILayout.EndHorizontal ();
-				
-				for ( var sc : int = 0; sc < inventory.categories[c].subcategories.Length; sc++ ) {
-					EditorGUILayout.BeginHorizontal ();
-					
-					GUILayout.Space ( 104 );
-					
-					GUI.backgroundColor = Color.red;
-					if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-						tmpStr = new List.< String > ( inventory.categories[c].subcategories );
-
-						tmpStr.RemoveAt ( sc );
-
-						inventory.categories[c].subcategories = tmpStr.ToArray ();
-						return;
-					}
-					GUI.backgroundColor = Color.white;
-				
-					inventory.categories[c].subcategories[sc] = EditorGUILayout.TextField ( inventory.categories[c].subcategories[sc] );
-					
-					EditorGUILayout.EndHorizontal ();
-					
-				}
-				
-				EditorGUILayout.BeginHorizontal ();
-				GUILayout.Space ( 104 );
-				GUI.backgroundColor = Color.green;
-				if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					tmpStr = new List.< String > ( inventory.categories[c].subcategories );
-
-					tmpStr.Add ( "Subcategory" );
-
-					inventory.categories[c].subcategories = tmpStr.ToArray ();
-					return;
-				}
-				GUI.backgroundColor = Color.white;
-				EditorGUILayout.EndHorizontal ();
-
-				EditorGUILayout.Space ();
-			}
-
-			GUI.backgroundColor = Color.green;
-			if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpCat = new List.< OSCategory > ( inventory.categories );
-
-				tmpCat.Add ( new OSCategory () );
-
-				inventory.categories = tmpCat.ToArray ();
-			}
-			GUI.backgroundColor = Color.white;
-		
-			EditorGUILayout.Space ();
-		}
-		
-		// Attributes
-		showAttributes = EditorGUILayout.Foldout ( showAttributes, "Attributes" );
-
-		var tmpAttr : List.< OSAttributeDefinition >;
-
-		if ( showAttributes ) {
-			for ( var a : int = 0; a < inventory.attributes.Length; a++ ) {
-				EditorGUILayout.BeginHorizontal ();
-				
-				GUI.backgroundColor = Color.red;
-				if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					tmpAttr = new List.< OSAttributeDefinition > ( inventory.attributes );
-
-					tmpAttr.RemoveAt ( c );
-
-					inventory.attributes = tmpAttr.ToArray ();
-					return;
-				}
-				GUI.backgroundColor = Color.white;
-				
-				EditorGUILayout.BeginVertical ();
-
-				inventory.attributes[a].id = EditorGUILayout.TextField ( "ID", inventory.attributes[a].id );
-				inventory.attributes[a].name = EditorGUILayout.TextField ( "Name", inventory.attributes[a].name );
-				inventory.attributes[a].suffix = EditorGUILayout.TextField ( "Suffix", inventory.attributes[a].suffix );
-				
-				EditorGUILayout.EndVertical ();
-
-				EditorGUILayout.EndHorizontal ();
-
-				EditorGUILayout.Space ();
-				
-			}
-			
-			GUI.backgroundColor = Color.green;
-			if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpAttr = new List.< OSAttributeDefinition > ( inventory.attributes );
-
-				tmpAttr.Add ( new OSAttributeDefinition () );
-
-				inventory.attributes = tmpAttr.ToArray ();
-			}
-			GUI.backgroundColor = Color.white;
-
-		}
-		
 		if ( GUI.changed ) {
 			SavePrefab ( target );
 		}
