@@ -51,6 +51,7 @@ public class OSItemInspector extends Editor {
 			EditorGUILayout.Space ();
 			EditorGUILayout.LabelField ( "Slot properties", EditorStyles.boldLabel );
 			item.stackable = EditorGUILayout.Toggle ( "Stackable", item.stackable );
+			item.canDrop = EditorGUILayout.Toggle ( "Can drop", item.canDrop );
 			
 			item.slotSize.x = EditorGUILayout.IntField ( "Width", item.slotSize.x );
 			item.slotSize.y = EditorGUILayout.IntField ( "Height", item.slotSize.y );
@@ -79,7 +80,8 @@ public class OSItemInspector extends Editor {
 				}
 				GUI.backgroundColor = Color.white;
 				
-				item.attributes[i].keyIndex = EditorGUILayout.Popup ( item.attributes[i].keyIndex, item.definitions.GetAttributeStrings () );
+				item.attributes[i].item = item;
+				item.attributes[i].index = EditorGUILayout.Popup ( item.attributes[i].index, item.definitions.GetAttributeStrings () );
 				item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
 
 				
@@ -90,7 +92,7 @@ public class OSItemInspector extends Editor {
 			if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
 				tmpAttr = new List.< OSAttribute > ( item.attributes );
 
-				tmpAttr.Add ( new OSAttribute ( item.definitions ) );
+				tmpAttr.Add ( new OSAttribute ( item ) );
 
 				item.attributes = tmpAttr.ToArray ();
 			}
