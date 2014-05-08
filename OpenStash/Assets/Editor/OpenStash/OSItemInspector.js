@@ -4,6 +4,8 @@ import System.Collections.Generic;
 
 @CustomEditor ( OSItem )
 public class OSItemInspector extends Editor {
+	private var resourceWarning : boolean = false;
+	
 	override function OnInspectorGUI () {
 		var item : OSItem = target as OSItem;
 		
@@ -19,31 +21,42 @@ public class OSItemInspector extends Editor {
 			GUI.color = Color.white;
 
 		} else {
+			EditorGUILayout.Space ();
+			EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
+			
+			EditorGUILayout.BeginHorizontal ();
 
-			// Prefab path
-			if ( !Application.isPlaying ) {
-				EditorGUILayout.BeginHorizontal ();
-				var str : String = "Get prefab path";
-				
-				if ( !String.IsNullOrEmpty ( item.prefabPath ) ) {
-					str = item.prefabPath;
-				} else {
-					GUI.color = Color.green;
-				}
+			EditorGUILayout.TextField ( "Path", item.prefabPath );
 
-				if ( GUILayout.Button ( str ) ) {
+			if ( !item.gameObject.activeInHierarchy ) {
+				GUI.backgroundColor = Color.green;
+				if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
 					var path : String = AssetDatabase.GetAssetPath ( item.gameObject );
-					path = path.Replace ( "Assets/Resources/", "" );
-					path = path.Replace ( ".prefab", "" );
+					if ( path.Contains ( "Assets/Resources/" ) ) {
+						path = path.Replace ( "Assets/Resources/", "" );
+						path = path.Replace ( ".prefab", "" );
 
-					item.prefabPath = path;
+						item.prefabPath = path;
+						
+						resourceWarning = false;
+					
+					} else {
+						resourceWarning = true;
+					
+					}
 				}
-
-				GUI.color = Color.white;
-
-				EditorGUILayout.EndHorizontal ();
+				GUI.backgroundColor = Color.white;
 			}
 
+			EditorGUILayout.EndHorizontal ();
+
+			if ( resourceWarning ) {
+				item.prefabPath = "";
+				GUI.color = Color.red;
+				EditorGUILayout.LabelField ( "Object not in /Resources folder!", EditorStyles.boldLabel );
+				GUI.color = Color.white;
+			}
+			
 			// Category
 			EditorGUILayout.Space ();
 			EditorGUILayout.LabelField ( "Category", EditorStyles.boldLabel );
@@ -92,7 +105,7 @@ public class OSItemInspector extends Editor {
 				item.attributes[i].item = item;
 				item.attributes[i].index = EditorGUILayout.Popup ( item.attributes[i].index, item.definitions.GetAttributeStrings () );
 				item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
-
+				EditorGUILayout.LabelField ( item.attributes[i].suffix, GUILayout.Width ( 80 ) );
 				
 				EditorGUILayout.EndHorizontal ();
 			}
@@ -110,7 +123,47 @@ public class OSItemInspector extends Editor {
 			EditorGUILayout.EndVertical ();
 
 			EditorGUILayout.EndHorizontal ();
+		
+			// Sounds
+			EditorGUILayout.Space ();
+			EditorGUILayout.LabelField ( "Sounds", EditorStyles.boldLabel );
+			EditorGUILayout.BeginHorizontal ();
 			
+			EditorGUILayout.BeginVertical ();
+			
+			for ( i = 0; i < item.sounds.Length; i++ ) {
+				EditorGUILayout.BeginHorizontal ();
+				
+				GUI.backgroundColor = Color.red;
+				if ( GUILayout.Button ( "x" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
+					var tmpSound : List.< AudioClip > = new List.< AudioClip > ( item.sounds );
+
+					tmpSound.RemoveAt ( i );
+
+					item.sounds = tmpSound.ToArray ();
+					return;
+				}
+				GUI.backgroundColor = Color.white;
+				
+				item.sounds[i] = EditorGUILayout.ObjectField ( item.sounds[i], typeof ( AudioClip ), false ) as AudioClip;
+				
+				EditorGUILayout.EndHorizontal ();
+			}
+			
+			GUI.backgroundColor = Color.green;
+			if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
+				tmpSound = new List.< AudioClip > ( item.sounds );
+
+				tmpSound.Add ( null );
+
+				item.sounds = tmpSound.ToArray ();
+			}
+			GUI.backgroundColor = Color.white;
+
+			EditorGUILayout.EndVertical ();
+
+			EditorGUILayout.EndHorizontal ();
+
 			// Ammunition
 			EditorGUILayout.Space ();
 		
@@ -120,8 +173,9 @@ public class OSItemInspector extends Editor {
 			EditorGUILayout.EndHorizontal ();
 
 			if ( item.ammunition.enabled ) {
-				item.ammunition.name = EditorGUILayout.TextField ( "Name", item.ammunition.name );
+				item.ammunition.index = EditorGUILayout.Popup ( "Type", item.ammunition.index, item.definitions.GetAmmunitionStrings() );
 				item.ammunition.value = EditorGUILayout.IntField ( "Amount", item.ammunition.value );
+				item.ammunition.item = item;
 			}
 
 			// Textures

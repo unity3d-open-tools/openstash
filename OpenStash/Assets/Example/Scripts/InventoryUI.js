@@ -41,6 +41,10 @@ public class InventoryUI extends MonoBehaviour {
 	public function SelectSlot ( n : String ) {
 		var i : int = int.Parse ( n );
 
+		if ( dragging && selectedSlot ) {
+			CancelDrag ();
+		}
+
 		if ( inventory.slots[i] == selectedSlot ) {
 			dragging = true;
 			selectedSlot.hidden = true;

@@ -35,6 +35,27 @@ public class OSInventoryInspector extends Editor {
 		}
 		
 		EditorGUILayout.Space ();
+		
+		EditorGUILayout.LabelField ( "Currency amounts", EditorStyles.boldLabel );
+
+		for ( var i : int = 0; i < inventory.definitions.currencies.Length; i++ ) {
+			var def : OSCurrency = inventory.definitions.currencies[i];
+			
+			EditorGUILayout.BeginHorizontal ();
+
+			inventory.CheckCurrency ( i );
+
+			var oldAmount : int = inventory.GetCurrencyAmount ( def.name );
+			var newAmount : int = EditorGUILayout.IntField ( def.name, oldAmount );
+		
+			if ( oldAmount != newAmount ) {
+				inventory.SetCurrencyAmount ( def.name, newAmount );
+			}			
+
+			EditorGUILayout.EndHorizontal ();
+		}
+		
+		EditorGUILayout.Space ();
 
 		var event : Event = Event.current;
 
@@ -204,7 +225,7 @@ public class OSInventoryInspector extends Editor {
 			event.Use ();
 			
 			if ( selected && selected.item ) {
-				var i : int = inventory.GetItemIndex ( selected.item );
+				i = inventory.GetItemIndex ( selected.item );
 
 				if ( i < inventory.slots.Count - 1 ) {
 					i++;
@@ -224,6 +245,8 @@ public class OSInventoryInspector extends Editor {
 
 		}
 
+		Repaint ();
+		
 		if ( GUI.changed ) {
 			SavePrefab ( target );
 		}

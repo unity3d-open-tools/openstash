@@ -2,10 +2,13 @@
 
 import System.Collections.Generic;
 
-public class OSAmmunition {
-	public var enabled : boolean = true;
-	public var name : String = "Bullets";
-	public var value : float = 0;
+public class OSCurrencyAmount {
+	public var index : int = 0;
+	public var amount : int = 0;
+
+	function OSCurrencyAmount ( index : int ) {
+		this.index = index;
+	}
 }
 
 public class OSGrid {
@@ -144,10 +147,18 @@ public class OSSlot {
 	public var y : int = 0;
 	public var quantity : int = 1;
 	public var hidden : boolean = false;
+	public var equipped : boolean = false;
 
 	function OSSlot () {
 
 	}
+
+	function OSSlot ( x : int, y : int, path : String ) {
+		var go : GameObject = Resources.Load ( path ) as GameObject;
+		this.x = x;
+		this.y = y;
+		this.item = go.GetComponent.< OSItem > ();
+	}	
 
 	function OSSlot ( x : int, y : int, item : OSItem ) {
 		this.x = x;
@@ -169,7 +180,91 @@ public class OSSlot {
 public class OSInventory extends MonoBehaviour {
 	public var definitions : OSDefinitions;
 	public var slots : List.< OSSlot > = new List.< OSSlot >();
+	public var quickSlots : List.< int > = new List.< int > ();
 	public var grid : OSGrid = new OSGrid ( this, 5, 3 );
+	public var wallet : OSCurrencyAmount[] = new OSCurrencyAmount[0];
+	public var eventHandler : GameObject;
+
+	// Equipped info
+	public function GetEquippedItems () : OSItem[] {
+		var tmpItems : List.< OSItem > = new List.< OSItem > ();
+		
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].equipped ) {
+				tmpItems.Add ( slots[i].item );
+			}
+		}
+		
+		return tmpItems.ToArray();
+	}
+
+	public function IsEquippedCategory ( category : String ) : boolean {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].item.category == category && slots[i].equipped ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function IsEquipped ( item : OSItem ) : boolean {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].item == item && slots[i].equipped ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function SetEquipped ( item : OSItem ) {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].item == item ) {
+				slots[i].equipped = true;
+				
+				if ( eventHandler ) {
+					eventHandler.SendMessage ( "OnEquipItem", slots[i].item, SendMessageOptions.DontRequireReceiver );
+				}
+				
+				break;
+			}
+		}
+	}
+	
+	public function UnequipAll () {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] ) {
+				slots[i].equipped = false;
+				
+				if ( eventHandler ) {
+					eventHandler.SendMessage ( "OnUnequipAll", SendMessageOptions.DontRequireReceiver );
+				}
+			}
+		}
+	}
+
+	// Quick info
+	public function SetQuickItem ( item : OSItem, key : int ) {
+		quickSlots.Insert ( key, GetItemIndex ( item ) );
+	}
+
+	public function GetQuickItem ( index : int ) : OSItem {
+		if ( index < quickSlots.Count ) {
+			return slots[quickSlots[index]].item;
+		
+		} else {
+			return null;
+		}
+	}
+
+	public function ClearQuickItem ( index : int ) {
+		quickSlots.RemoveAt ( index );
+	}
+
+	public function ClearQuickItems () {
+		quickSlots.Clear ();
+	}
 
 	// Get data
 	public function GetItemIndex ( item : OSItem ) : int {
@@ -192,6 +287,62 @@ public class OSInventory extends MonoBehaviour {
 		return null;
 	}
 
+	// Currency
+	public function CheckCurrency ( index : int ) {
+		var tmpWallet : List.< OSCurrencyAmount > = new List.< OSCurrencyAmount > ( wallet );
+
+		for ( var i : int = 0; i < tmpWallet.Count; i++ ) {
+			if ( tmpWallet[i].index == index ) {
+				return;
+			}
+		}
+
+		tmpWallet.Add ( new OSCurrencyAmount ( index ) );
+
+		wallet = tmpWallet.ToArray();
+	}
+	
+	public function ChangeCurrencyAmount ( id : String, amount : int ) {
+		for ( var i : int = 0; i < wallet.Length; i++ ) {
+			if ( definitions.currencies [ wallet[i].index ].name == id ) {
+				wallet[i].amount += amount;
+				return;
+			}
+		}
+	}
+	
+	public function SetCurrencyAmount ( id : String, amount : int ) {
+		for ( var i : int = 0; i < wallet.Length; i++ ) {
+			if ( definitions.currencies [ wallet[i].index ].name == id ) {
+				wallet[i].amount = amount;
+				return;
+			}
+		}
+	}
+	
+	public function GetCurrencyAmount ( id : String ) : int {
+		for ( var i : int = 0; i < wallet.Length; i++ ) {
+			if ( definitions.currencies [ wallet[i].index ].name == id ) {
+				return wallet[i].amount;
+			}
+		}
+
+		return -1;
+	}
+
+	// Search functions
+	public function FindItemByCategory ( cat : String, subcat : String ) : OSItem {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].item ) {
+				if ( cat == slots[i].item.category && subcat == slots[i].item.subcategory ) {
+					return slots[i].item;
+				}
+			}
+		}
+
+		return null;
+	}
+
 	// Get/set items
 	public function SpawnSlot ( slot : OSSlot, parent : Transform, position : Vector3 ) {
 		if ( !slot.item ) { return; }
@@ -207,6 +358,14 @@ public class OSInventory extends MonoBehaviour {
 			go.transform.parent = parent;
 			go.transform.position = position;
 			go.transform.localScale = scale;
+		}
+	}
+	
+	public function DecreaseItem ( item : OSItem ) {
+		var slot : OSSlot = GetSlot ( item );
+
+		if ( slot ) {
+			DecreaseSlot ( slot );
 		}
 	}
 	
@@ -273,8 +432,30 @@ public class OSInventory extends MonoBehaviour {
 			return true;
 
 		}
+
+		// Set up reference for item behaviours
+		var grenade : OSGrenade = item.GetComponent.< OSGrenade > ();
+		var firearm : OSFirearm = item.GetComponent.< OSFirearm > ();
+
+		if ( grenade ) {
+			grenade.SetInventory ( this );
+		
+		} else if ( firearm ) {
+			firearm.SetInventory ( this );
+		
+		}
 	}
-	
+
+	public function GetSlot ( item : OSItem ) : OSSlot {
+		for ( var i : int = 0; i < slots.Count; i++ ) {
+			if ( slots[i] && slots[i].item.prefabPath == item.prefabPath ) {
+				return slots[i];
+			}
+		}
+
+		return null;
+	}
+
 	public function GetItem ( x : int, y : int ) : OSItem {
 		for ( var i : int = 0; i < slots.Count; i++ ) {
 			if ( slots[i].x == x && slots[i].y == y ) {
