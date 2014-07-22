@@ -17,13 +17,13 @@ public class OGFontInfo {
 	public var convertCase : int;
 	public var characterPadding : int;
 	public var characterSpacing : int;
-	public var size : int;
 	public var characterRects : OGCharacterInfo[];
 }
 
 public class OGFont extends MonoBehaviour {
 	public var bitmapFont : Font;
 	public var dynamicFont : Font;
+	public var size : int = 72;
 	public var info : OGFontInfo;
 	public var atlasSize : Vector2;
 

@@ -185,6 +185,19 @@ public class OSInventory extends MonoBehaviour {
 	public var wallet : OSCurrencyAmount[] = new OSCurrencyAmount[0];
 	public var eventHandler : GameObject;
 
+	// Make sure definitions are set
+	public function SetDefinitions () {
+		for ( var slot : OSSlot in slots ) {
+			if ( slot.item ) {
+				slot.item.definitions = definitions;
+
+				for ( var attr : OSAttribute in slot.item.attributes ) {
+					attr.definitions = definitions;
+				}
+			}
+		}
+	}
+
 	// Equipped info
 	public function GetEquippedItems () : OSItem[] {
 		var tmpItems : List.< OSItem > = new List.< OSItem > ();
@@ -218,10 +231,25 @@ public class OSInventory extends MonoBehaviour {
 		return false;
 	}
 
+	public function SetQuickSlotEquipped ( i : int ) {
+		if ( i < quickSlots.Count && quickSlots[i] < slots.Count ) {
+			var slot : OSSlot = slots [ quickSlots[i] ];
+
+			if ( slot.item ) {
+				UnequipAll ();
+				SetEquipped ( slot.item );
+			}
+		}
+	}
+
 	public function SetEquipped ( item : OSItem ) {
+		SetEquipped ( item, true );
+	}
+
+	public function SetEquipped ( item : OSItem, isEquipped : boolean ) {
 		for ( var i : int = 0; i < slots.Count; i++ ) {
 			if ( slots[i] && slots[i].item == item ) {
-				slots[i].equipped = true;
+				slots[i].equipped = isEquipped;
 				
 				if ( eventHandler ) {
 					eventHandler.SendMessage ( "OnEquipItem", slots[i].item, SendMessageOptions.DontRequireReceiver );
@@ -378,6 +406,7 @@ public class OSInventory extends MonoBehaviour {
 	}
 
 	public function RemoveSlot ( slot : OSSlot ) {
+		slot.equipped = false;
 		slots.Remove ( slot );
 	}
 	
@@ -394,6 +423,7 @@ public class OSInventory extends MonoBehaviour {
 		
 		var go : GameObject = Resources.Load ( sceneItem.prefabPath ) as GameObject;
 
+		sceneItem.gameObject.SendMessage ( "OnPickUp", SendMessageOptions.DontRequireReceiver );
 		Destroy ( sceneItem.gameObject );
 
 		return AddItem ( go.GetComponent.< OSItem > () );
@@ -403,19 +433,19 @@ public class OSInventory extends MonoBehaviour {
 		if ( !item ) { return false; }
 	
 		item.definitions = this.definitions;
-
+	
 		// Check if similar item is already in the inventory
 		for ( var i : int = 0; i < slots.Count; i++ ) {
 			if ( slots[i].item.id == item.id ) {
 			       	if ( item.stackable ) {
 					slots[i].quantity++;
 				
-				} else if ( item.ammunition.enabled ) {
-					slots[i].item.ChangeAmmunition ( item.ammunition.value );
+				// TODO: Find a way to store ammunition information *not* in the OSItem prefab itself
+				//} else if ( item.ammunition.enabled ) {
+				//	slots[i].item.ChangeAmmunition ( item.ammunition.value );
 				
+					return true;
 				}
-				
-				return true;
 			}
 		}
 		
@@ -423,7 +453,7 @@ public class OSInventory extends MonoBehaviour {
 		var availableCell : OSPoint = new OSPoint ( -1, -1 );
 
 		availableCell = grid.GetAvailableCell ( item );
-
+		
 		if ( OSPoint.IsNullOrNegative ( availableCell ) ) {
 			return false;
 
@@ -433,17 +463,6 @@ public class OSInventory extends MonoBehaviour {
 
 		}
 
-		// Set up reference for item behaviours
-		var grenade : OSGrenade = item.GetComponent.< OSGrenade > ();
-		var firearm : OSFirearm = item.GetComponent.< OSFirearm > ();
-
-		if ( grenade ) {
-			grenade.SetInventory ( this );
-		
-		} else if ( firearm ) {
-			firearm.SetInventory ( this );
-		
-		}
 	}
 
 	public function GetSlot ( item : OSItem ) : OSSlot {
@@ -464,5 +483,10 @@ public class OSInventory extends MonoBehaviour {
 		}
 
 		return null;
+	}
+
+	// Behaviour
+	function Start () {
+		SetDefinitions ();
 	}
 }

@@ -7,8 +7,8 @@ public class OGWidgetInspector extends Editor {
 	private function GetStyles ( widget : OGWidget ) : String[] {
 		var tempList : List.< String > = new List.< String >();
 		
-		if ( widget && widget.GetRoot() ) {
-			for ( var style : OGStyle in widget.GetRoot().skin.styles ) {
+		if ( widget && widget.root ) {
+			for ( var style : OGStyle in widget.root.skin.styles ) {
 				tempList.Add ( style.name );
 			}
 		}
@@ -17,9 +17,9 @@ public class OGWidgetInspector extends Editor {
 	}
 	
 	private function GetStyleIndex ( widget : OGWidget, style : OGStyle ) : int {
-		if ( widget.GetRoot() && widget.GetRoot().skin ) {
-			for ( var i : int = 0; i < widget.GetRoot().skin.styles.Length; i++ ) {
-				if ( widget.GetRoot().skin.styles[i].name == style.name ) {
+		if ( widget.root && widget.root.skin ) {
+			for ( var i : int = 0; i < widget.root.skin.styles.Length; i++ ) {
+				if ( widget.root.skin.styles[i].name == style.name ) {
 					return i;
 				}
 			}
@@ -29,11 +29,9 @@ public class OGWidgetInspector extends Editor {
 	}
 	
 	override function OnInspectorGUI () {		
-		serializedObject.Update ();
-		
 		var widget : OGWidget = target as OGWidget;
 				
-		if ( !widget || !widget.GetRoot() ) { return; }
+		if ( !widget || !widget.root ) { return; }
 	
 		// Check for hidden widgets
 		if ( widget.hidden ) {
@@ -48,8 +46,8 @@ public class OGWidgetInspector extends Editor {
 			// Default inspector
 			DrawDefaultInspector ();
 			
-			// OGCameraWindow and OGTexture don't need styles
-			if ( target.GetType() != OGTexture && target.GetType() != OGCameraWindow ) {
+			// OGCameraWindow, OGLineNode and OGTexture don't need styles
+			if ( target.GetType != OGLineNode && target.GetType() != OGTexture && target.GetType() != OGCameraWindow ) {
 				EditorGUILayout.Space();
 		
 				EditorGUILayout.LabelField ( "Style", EditorStyles.boldLabel );
@@ -64,11 +62,11 @@ public class OGWidgetInspector extends Editor {
 						EditorGUILayout.LabelField ( styleType.ToString() );
 						
 						wdStyleIndex = EditorGUILayout.Popup ( wdStyleIndex, GetStyles ( widget ) );
-						widget.styles.SetStyle ( styleType, widget.GetRoot().skin.styles [ wdStyleIndex ] );
+						widget.styles.SetStyle ( styleType, widget.root.skin.styles [ wdStyleIndex ] );
 					
 						// ^ Edit
 						if ( GUILayout.Button ( "Edit", GUILayout.Width ( 40 ) ) ) {
-							Selection.activeObject = widget.GetRoot().skin;
+							Selection.activeObject = widget.root.skin;
 							OGSkinInspector.SetCurrentStyle ( wdStyleIndex );
 						}
 						
@@ -81,13 +79,13 @@ public class OGWidgetInspector extends Editor {
 				EditorGUILayout.BeginHorizontal();
 
 				// Get defaults	
-				if ( GUILayout.Button ( "Get default styles" ) ) {
-					( target as OGWidget ).GetDefaultStyles();
+				if ( GUILayout.Button ( "Apply default styles" ) ) {
+					( target as OGWidget ).ApplyDefaultStyles();
 				}
 				
 				// ^ Edit
 				if ( GUILayout.Button ( "Edit", GUILayout.Width ( 40 ) ) ) {
-					Selection.activeObject = widget.GetRoot().skin;
+					Selection.activeObject = widget.root.skin;
 					OGSkinInspector.SetDefaultsMode();
 				}
 				

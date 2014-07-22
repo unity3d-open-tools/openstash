@@ -1,7 +1,6 @@
 ﻿#pragma strict
 
 public class OSAttributeDefinition {
-	public var id : String = "newAttribute";
 	public var name : String = "New Attribute";
 	public var suffix : String = "points";
 }
@@ -44,7 +43,7 @@ public class OSDefinitions extends MonoBehaviour {
 		var output : String [] = new String [ attributes.Length ];
 
 		for ( var i : int = 0; i < attributes.Length; i++ ) {
-			output[i] = attributes[i].id; 
+			output[i] = attributes[i].name; 
 		}
 
 		return output;

@@ -12,15 +12,15 @@ public class OGScrollView extends OGWidget {
 		Auto
 	}
 
+	public var touchControl : boolean = false;
+	public var infiniteScrolling : boolean = false;
+	public var lockAxis : ScrollDirection;
+	public var scrollbarVisibility : ScrollbarVisibility = ScrollbarVisibility.Auto;
 	public var size : Vector2;
 	public var position : Vector2;
 	public var padding : Vector2 = new Vector2 ( 10, 10 );
 	public var elasticity : float = 2;
-	public var thumbScale : Vector2 = new Vector2 ( 6, 1 );
-	public var lockAxis : ScrollDirection;
-	public var scrollbarVisibility : ScrollbarVisibility = ScrollbarVisibility.Auto;
-	public var infiniteScrolling : boolean = false;
-	public var touchControl : boolean = false;
+	public var thumbScale : Vector2 = new Vector2 ( 16, 1 );
 
 	private var widgets : OGWidget[];
 	private var bounds : Vector2;
@@ -55,9 +55,7 @@ public class OGScrollView extends OGWidget {
 	// Update
 	////////////////
 	private function UpdateChildren () {
-		if ( !widgets || widgets.Length != this.gameObject.GetComponentsInChildren.<OGWidget>().Length ) {
-			widgets = this.gameObject.GetComponentsInChildren.<OGWidget>();
-		}
+		widgets = this.gameObject.GetComponentsInChildren.<OGWidget>();
 
 		bounds = Vector2.zero;
 		
@@ -73,7 +71,6 @@ public class OGScrollView extends OGWidget {
 				w.anchor.x = RelativeX.None;
 				w.anchor.y = RelativeY.None;
 				w.clipTo = this;
-				w.tint = this.tint;
 
 				var bottom : float = w.transform.position.y - this.transform.position.y + w.transform.localScale.y - size.y + padding.y * 2;
 				var right : float = w.transform.position.x - this.transform.position.x + w.transform.localScale.x - size.x + padding.x * 2;
@@ -216,18 +213,17 @@ public class OGScrollView extends OGWidget {
 	// Mouse
 	//////////////////
 	override function OnMouseDrag () {
-		if ( !isDraggable ) { return; }
-
 		var drag : Vector2;
 		var amount : Vector2;
+		
 		drag.x = Input.GetAxis ( "Mouse X" ); 
 		drag.y = Input.GetAxis ( "Mouse Y" );
 		
-		amount.x = Mathf.Floor ( drag.x * 20 );
-		amount.y = -Mathf.Floor ( drag.y * 20 );
+		amount.x = Mathf.Floor ( drag.x * 12 );
+		amount.y = -Mathf.Floor ( drag.y * 12 );
 		
 		// Elasticity
-		if ( !IsInfiniteX() ) {
+		if ( !IsInfiniteX() && lockAxis != ScrollDirection.Y ) {
 			if ( position.x + amount.x > 0 ) {
 				amount.x *= elasticity / ( elasticity * ( position.x + amount.x ) );
 			} else if ( position.x + amount.x < bounds.x ) {
@@ -235,7 +231,7 @@ public class OGScrollView extends OGWidget {
 			} 
 		}
 
-		if ( !IsInfiniteY() ) {
+		if ( !IsInfiniteY() && lockAxis != ScrollDirection.X ) {
 			if ( position.y + amount.y > 0 ) {
 				amount.y *= elasticity / ( elasticity * ( position.y + amount.y ) );
 			} else if ( position.y + amount.y < bounds.y ) {
@@ -257,13 +253,13 @@ public class OGScrollView extends OGWidget {
 	override function OnMouseCancel () {
 		StartCoroutine ( SnapBack () );
 	
-		GetRoot().ReleaseWidget ();
+		root.ReleaseWidget ();
 	}
 
 	override function OnMouseUp () {
 		StartCoroutine ( SnapBack () );
 	
-		GetRoot().ReleaseWidget ();
+		root.ReleaseWidget ();
 	}
 
 	override function OnMouseOver () {
@@ -328,15 +324,15 @@ public class OGScrollView extends OGWidget {
 	}
 	
 	override function DrawSkin () {
-		OGDrawHelper.DrawSprite ( drawRct, styles.basic, drawDepth - 10, tint );
+		OGDrawHelper.DrawSlicedSprite ( drawRct, styles.basic, drawDepth - 10, tint );
 	
 		if ( scrollbarVisibility == ScrollbarVisibility.Auto ) {
-			if ( bounds.x < 0 ) {
-				if ( !IsInfiniteX() ) { OGDrawHelper.DrawSprite ( GetScrollbarXRect(), styles.thumb, drawDepth - 9, tint ); }
+			if ( bounds.x < 0 && !IsInfiniteX() && lockAxis != ScrollDirection.Y ) {
+				OGDrawHelper.DrawSlicedSprite ( GetScrollbarXRect(), styles.thumb, drawDepth - 9, tint );
 			}
 
-			if ( bounds.y < 0 ) {
-				if ( !IsInfiniteY() ) { OGDrawHelper.DrawSprite ( GetScrollbarYRect(), styles.thumb, drawDepth - 9, tint ); }
+			if ( bounds.y < 0 && !IsInfiniteY() && lockAxis != ScrollDirection.X ) {
+				OGDrawHelper.DrawSlicedSprite ( GetScrollbarYRect(), styles.thumb, drawDepth - 9, tint );
 			}
 		}
 	}

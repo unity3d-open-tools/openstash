@@ -102,7 +102,7 @@ public class OSItemInspector extends Editor {
 				}
 				GUI.backgroundColor = Color.white;
 				
-				item.attributes[i].item = item;
+				item.attributes[i].definitions = item.definitions;
 				item.attributes[i].index = EditorGUILayout.Popup ( item.attributes[i].index, item.definitions.GetAttributeStrings () );
 				item.attributes[i].value = EditorGUILayout.FloatField ( item.attributes[i].value );
 				EditorGUILayout.LabelField ( item.attributes[i].suffix, GUILayout.Width ( 80 ) );
@@ -114,7 +114,7 @@ public class OSItemInspector extends Editor {
 			if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
 				tmpAttr = new List.< OSAttribute > ( item.attributes );
 
-				tmpAttr.Add ( new OSAttribute ( item ) );
+				tmpAttr.Add ( new OSAttribute ( item.definitions ) );
 
 				item.attributes = tmpAttr.ToArray ();
 			}
@@ -175,6 +175,8 @@ public class OSItemInspector extends Editor {
 			if ( item.ammunition.enabled ) {
 				item.ammunition.index = EditorGUILayout.Popup ( "Type", item.ammunition.index, item.definitions.GetAmmunitionStrings() );
 				item.ammunition.value = EditorGUILayout.IntField ( "Amount", item.ammunition.value );
+				item.ammunition.max = EditorGUILayout.IntField ( "Maximum", item.ammunition.max );
+				item.ammunition.spread = EditorGUILayout.IntField ( "Spread", item.ammunition.spread );
 				item.ammunition.item = item;
 			}
 

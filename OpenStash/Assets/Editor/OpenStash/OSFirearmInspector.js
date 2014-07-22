@@ -29,14 +29,37 @@ public class OSFirearmInspector extends Editor {
 		firearm.firingRateIndex = EditorGUILayout.Popup ( "Firing rate", firearm.firingRateIndex, firearm.item.GetAttributeStrings () );
 		firearm.rangeIndex = EditorGUILayout.Popup ( "Range", firearm.rangeIndex, firearm.item.GetAttributeStrings () );
 		firearm.reloadSpeedIndex = EditorGUILayout.Popup ( "Reload speed", firearm.reloadSpeedIndex, firearm.item.GetAttributeStrings () );
+		firearm.capacityIndex = EditorGUILayout.Popup ( "Capacity", firearm.capacityIndex, firearm.item.GetAttributeStrings () );
 
 		EditorGUILayout.Space ();
 
 		EditorGUILayout.LabelField ( "Inherited sounds", EditorStyles.boldLabel );
 
 		firearm.firingSoundIndex = EditorGUILayout.Popup ( "Fire", firearm.firingSoundIndex, firearm.item.GetSoundStrings () );
+		firearm.emptySoundIndex = EditorGUILayout.Popup ( "Empty", firearm.emptySoundIndex, firearm.item.GetSoundStrings () );
 		firearm.reloadSoundIndex = EditorGUILayout.Popup ( "Reload", firearm.reloadSoundIndex, firearm.item.GetSoundStrings () );
 		firearm.equippingSoundIndex = EditorGUILayout.Popup ( "Equip", firearm.equippingSoundIndex, firearm.item.GetSoundStrings () );
 		firearm.holsteringSoundIndex = EditorGUILayout.Popup ( "Holster", firearm.holsteringSoundIndex, firearm.item.GetSoundStrings () );
+		
+		EditorGUILayout.Space ();
+
+		EditorGUILayout.LabelField ( "Inherited animations", EditorStyles.boldLabel );
+
+		if ( firearm.animation ) {
+			var animationNames : List.< String > = new List.< String  > ();
+
+			for ( var state : Object in firearm.animation ) {
+				animationNames.Add ( ( state as AnimationState ).name );
+			}
+
+			firearm.firingAnimationIndex = EditorGUILayout.Popup ( "Equip", firearm.equippingAnimationIndex, animationNames.ToArray () );
+			firearm.firingAnimationIndex = EditorGUILayout.Popup ( "Holster", firearm.holsteringAnimationIndex, animationNames.ToArray () );
+			firearm.firingAnimationIndex = EditorGUILayout.Popup ( "Fire", firearm.firingAnimationIndex, animationNames.ToArray () );
+			firearm.firingAnimationIndex = EditorGUILayout.Popup ( "Reload", firearm.reloadingAnimationIndex, animationNames.ToArray () );
+		
+		} else {
+			EditorGUILayout.LabelField ( "No animations on this item!" );
+		
+		}
 	}
 }

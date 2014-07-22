@@ -6,16 +6,17 @@ public class OGPage extends MonoBehaviour {
 	public function StartPage () {}
 	public function UpdatePage () {}
 	public function ExitPage () {}
-	
+	public function DrawPage () {}
+
 	public function UpdateStyles () {
 		for ( var w : OGWidget in this.transform.GetComponentsInChildren.<OGWidget>(true) ) {
-			w.styles.Refresh ( w.GetRoot().skin );
+			w.styles.Refresh ( w.root.skin );
 		}
 	}
 
 	public function ResetStyles () {
 		for ( var w : OGWidget in this.transform.GetComponentsInChildren.<OGWidget>(true) ) {
-			OGRoot.GetInstance().skin.GetDefaultStyles ( w );
+			OGRoot.GetInstance().skin.ApplyDefaultStyles ( w );
 		}	
 	}
 

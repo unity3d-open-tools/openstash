@@ -141,7 +141,6 @@ public class OSDefinitionsInspector extends Editor {
 			
 			EditorGUILayout.BeginVertical ();
 
-			definitions.attributes[a].id = EditorGUILayout.TextField ( "ID", definitions.attributes[a].id );
 			definitions.attributes[a].name = EditorGUILayout.TextField ( "Name", definitions.attributes[a].name );
 			definitions.attributes[a].suffix = EditorGUILayout.TextField ( "Suffix", definitions.attributes[a].suffix );
 			

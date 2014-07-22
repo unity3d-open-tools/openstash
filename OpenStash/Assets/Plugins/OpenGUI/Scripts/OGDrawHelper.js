@@ -4,7 +4,9 @@ import System.Collections.Generic;
 
 public class OGDrawHelper {
 	private static var texSize : Vector2;
-	
+	private static var root : OGRoot;
+
+
 	//////////////////
 	// Core
 	//////////////////
@@ -15,24 +17,99 @@ public class OGDrawHelper {
 		texSize.y = mat.mainTexture.height;
 	}
 
+	
+	//////////////////
+	// Curve
+	//////////////////
+	// Bezier
+	public static function CalculateBezierPoint ( t : float, p0 : Vector3, p1 : Vector3, p2 : Vector3, p3 : Vector3 ) : Vector3 {
+		var u : float = 1 - t;
+		var tt : float = t*t;
+	  	var uu : float = u*u;
+	  	var uuu : float = uu * u;
+	  	var ttt : float = tt * t;
+	 
+	  	var p : Vector3 = uuu * p0;
+	  	p += 3 * uu * t * p1;
+	  	p += 3 * u * tt * p2;
+	  	p += ttt * p3;
+	 
+	  	return p;
+	}	
+	
+	// Draw
+	public static function DrawLine ( start : Vector3, end : Vector3, depth : float ) {
+		GL.Vertex ( start + new Vector3 ( 0, 0, depth ) );
+		GL.Vertex ( end + new Vector3 ( 0, 0, depth ) );
+	}
+	
+	public static function DrawCurve ( start : Vector3, startDir : Vector3, endDir : Vector3, end : Vector3, segments : int ) {
+		var lastPoint : Vector3; 
+
+		for ( var i : int = 0; i < segments; i++ ) {
+			var time : float = ( i * 1.0 ) * ( 1.0 / segments );
+			var p : Vector3 = CalculateBezierPoint ( time, start, startDir, endDir, end );
+		
+			if ( i > 0 ) {
+				GL.Vertex ( lastPoint );
+				GL.Vertex ( p );
+			}
+
+			lastPoint = p;
+		}
+	}
+
 
 	//////////////////
 	// Label
 	//////////////////
+	// Get width
+	public static function GetLabelWidth ( string : String, style : OGTextStyle ) : float {
+		var width : float = style.padding.left + style.padding.right;
+		
+		var size : float = ( style.fontSize * 1.0 ) / style.font.size;
+		var space : float = ( style.font.GetCharacterInfo ( " "[0] ).width * size );
+		
+		for ( var c : int = 0; c < string.Length; c++ ) {
+			if ( string[c] == " "[0] ) {
+				width += space;
+
+			} else {
+				var info : OGCharacterInfo = style.font.GetCharacterInfo ( string[c] );
+
+				if ( info ) {
+					width += info.width * size;
+				}
+			}
+		}
+
+		return width;
+	}
+	
 	// Draw
 	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, depth : float, tint : Color ) {
-		DrawLabel ( rect, string, style, style.fontSize, style.alignment, depth, tint, null );
+		DrawLabel ( rect, string, style, style.fontSize, style.alignment, depth, tint, null, null );
+	}
+	
+	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, depth : float, tint : Color, clipping : OGWidget, editor : OGTextEditor ) {
+		DrawLabel ( rect, string, style, style.fontSize, style.alignment, depth, tint, clipping, editor );
 	}
 		
 	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, depth : float, tint : Color, clipping : OGWidget ) {
-		DrawLabel ( rect, string, style, style.fontSize, style.alignment, depth, tint, clipping );
+		DrawLabel ( rect, string, style, style.fontSize, style.alignment, depth, tint, clipping, null );
 	}
 	
 	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, intSize : int, alignment : TextAnchor, depth : float, tint : Color ) {
-		DrawLabel ( rect, string, style, intSize, alignment, depth, tint, null );
+		DrawLabel ( rect, string, style, intSize, alignment, depth, tint, null, null );
 	}
 	
-	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, intSize : int, alignment : TextAnchor, depth : float, tint : Color, clipping : OGWidget ) {
+	public static function DrawLabel ( rect : Rect, string : String, style : OGTextStyle, intSize : int, alignment : TextAnchor, depth : float, tint : Color, clipping : OGWidget, editor : OGTextEditor ) {
+		// Check root
+		if ( root == null ) {
+			root = OGRoot.GetInstance ();
+			return;
+		}	
+		
 		// Check font
 		if ( style.font == null ) {
 			style.font = OGRoot.GetInstance().skin.fonts [ style.fontIndex ];
@@ -41,11 +118,18 @@ public class OGDrawHelper {
 
 		// Check string
 		if ( String.IsNullOrEmpty ( string ) ) {
+			if ( editor ) {
+				editor.cursorIndex = 0;
+				editor.cursorSelectIndex = 0;
+				editor.cursorPos.x = rect.xMin;
+				editor.cursorPos.y = rect.yMin - style.fontSize;
+			}
+
 			return;
 		}
 
 		// Check screen
-		if ( rect.xMin > Screen.width || rect.xMax < 0 || rect.yMax < 0 || rect.yMin > Screen.height ) {
+		if ( rect.xMin > root.screenWidth || rect.xMax < 0 || rect.yMax < 0 || rect.yMin > root.screenHeight ) {
 			return;
 		}
 		
@@ -57,16 +141,16 @@ public class OGDrawHelper {
 		}
 		
 		// Scale
-		var size : float = ( intSize * 1.0 ) / 72;
+		var size : float = ( intSize * 1.0 ) / style.font.size;
 		var atlasSize : Vector2 = style.font.atlasSize;
 		
 		// Bounds
 		var left : float = style.padding.left;
-		var right : float = rect.width - style.padding.right;
+		var right : float = rect.width - style.padding.right - style.padding.left;
 		var top : float = rect.height - style.padding.top;
+		var bottom : float = style.padding.bottom;
 		var middle : float = ( rect.height / 2 ) + ( ( style.font.info.lineSpacing * size ) / 2 );
 		var center : float = left + right / 2;
-		var bottom : float = rect.height - style.padding.bottom;
 		
 		// Positioning
 		var anchor : Vector2;
@@ -80,10 +164,10 @@ public class OGDrawHelper {
 		var lineWidth : float = 0;
 		var lineHeight : float = style.font.info.lineSpacing * size;
 		var emergencyBrake : int = 0;
+		var closestGlyphToCursor : Vector2;
 		
 		// Temp vars
 		var info : OGCharacterInfo;
-		var cursorPos : Vector2;
 
 		// Set anchor
 		switch ( alignment ) {
@@ -140,9 +224,10 @@ public class OGDrawHelper {
 		color.b *= tint.b;
 		color.a *= tint.a;
 		GL.Color ( color );
-		
+	
 		// Draw loop
-		while ( nextLineStart < string.Length && advance.y > -bottom ) {
+		while ( nextLineStart < string.Length && advance.y - style.padding.top > - ( rect.height - style.padding.top - style.padding.bottom ) ) {
+			
 			// Get next line
 			lastSpace = 0;
 			lineWidth = 0;
@@ -170,7 +255,7 @@ public class OGDrawHelper {
 
 				// The line width has exceeded the border
 				if ( lineWidth >= right ) {
-					nextLineStart = lastSpace + 1;
+					nextLineStart = lastSpace == 0 ? c : lastSpace + 1;
 					break;
 				}
 			}
@@ -195,11 +280,6 @@ public class OGDrawHelper {
 					continue;
 				}
 
-				if ( string[g] == " "[0] ) {
-					advance.x += space;
-					continue;
-				}
-				
 				var vert : Rect = new Rect ( info.vert.x * size, info.vert.y * size, info.vert.width * size, info.vert.height * size );
 				var uv : Vector2[] = new Vector2[4];
 
@@ -220,6 +300,44 @@ public class OGDrawHelper {
 				var gRight : float = anchor.x + vert.x + rect.x + advance.x + vert.width;
 				var gBottom : float = anchor.y + vert.height + vert.y + rect.y + advance.y;
 				var gTop : float = anchor.y + vert.height + vert.y + rect.y + advance.y - vert.height;
+	
+				// If it's a space, set appropriate corners
+				if ( string[g] == " "[0] ) {
+					gRight += space;
+				}
+
+				// Set cursor position
+				if ( editor && !String.IsNullOrEmpty ( editor.string ) ) {
+					if ( editor.cursorIndex == g ) {
+						editor.cursorPos.x = gLeft;
+						editor.cursorPos.y = gBottom;
+					
+					} else if ( editor.cursorIndex >= editor.string.Length && g == editor.string.Length - 1 ) {
+						editor.cursorPos.x = gRight;
+						editor.cursorPos.y = gBottom;
+
+					}
+					
+					
+					if ( editor.cursorSelectIndex == g ) {
+						editor.cursorSelectPos.x = gLeft;
+						editor.cursorSelectPos.y = gBottom;
+					
+					} else if ( editor.cursorSelectIndex >= editor.string.Length && g == editor.string.Length - 1 ) {
+						editor.cursorSelectPos.x = gRight;
+						editor.cursorSelectPos.y = gBottom;
+
+					}
+
+					editor.cursorSize.x = 1;
+					editor.cursorSize.y = style.fontSize;
+				}
+				
+				// If it's a space, continue the loop
+				if ( string[g] == " "[0] ) {
+					advance.x += space;
+					continue;
+				}
 			
 				// Advance regardless if the glyph is drawn or not	
 				advance.x += info.width * size;
@@ -296,16 +414,25 @@ public class OGDrawHelper {
 	//////////////////
 	// Regular
 	public static function DrawSprite ( rect : Rect, style : OGStyle, depth : float, tint : Color ) {
+		if ( style == null ) { return; }
+
 		DrawSprite ( rect, style, depth, tint, null );
 	}
 	
 	public static function DrawSprite ( rect : Rect, style : OGStyle, depth : float, tint : Color, clipping : OGWidget ) {
+		if ( style == null ) { return; }
+
 		DrawSprite ( rect, style.coordinates, depth, style.color, tint, clipping );
 	}	
 
 	public static function DrawSprite ( rect : Rect, uvRect : Rect, depth : float, color : Color, tint : Color, clipping : OGWidget ) {
+		if ( !root ) {
+			root = OGRoot.GetInstance();
+			return;
+		}
+		
 		// Check screen
-		if ( rect.xMin > Screen.width || rect.xMax < 0 || rect.yMax < 0 || rect.yMin > Screen.height ) {
+		if ( rect.xMin > root.screenWidth || rect.xMax < 0 || rect.yMax < 0 || rect.yMin > root.screenHeight ) {
 			return;
 		}
 

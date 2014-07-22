@@ -40,13 +40,17 @@ public class OSGrenade extends MonoBehaviour {
 	public function get range () : float {
 		return item.attributes[rangeIndex].value;
 	}
+	
+	public function get damage () : float {
+		return item.attributes[damageIndex].value;
+	}
 
 	public function SetInventory ( inventory : OSInventory ) {
 		this.inventory = inventory;
 	}
 
 	public function Throw () {
-		if ( !bezier ) { return; }
+		if ( !bezier || thrown ) { return; }
 		
 		this.transform.parent = this.transform.root.parent;
 		
@@ -56,14 +60,14 @@ public class OSGrenade extends MonoBehaviour {
 			collider.enabled = true;
 		}
 		
-		if ( inventory ) {
-			inventory.GetSlot ( item );
-		}
-
 		startNormal = this.transform.up;
 
 		if ( lineRenderer ) {
 			lineRenderer.enabled = false;
+		}
+
+		if ( inventory ) {
+			inventory.DecreaseItem ( this.GetComponent.< OSItem > () );
 		}
 	}
 
@@ -94,9 +98,10 @@ public class OSGrenade extends MonoBehaviour {
 	}
 
 	public function Explode () {
-		if ( explosion ) {
+		if ( !exploded && explosion ) {
+			explosion.SetActive ( true );
+			
 			if ( explosion.activeInHierarchy ) {
-				explosion.SetActive ( true );
 				explosion.transform.parent = this.transform.parent;
 				explosion.transform.position = this.transform.position;
 			
@@ -106,6 +111,7 @@ public class OSGrenade extends MonoBehaviour {
 				explosion.transform.position = this.transform.position;
 		
 			}
+			
 		}
 
 		exploded = true;
@@ -119,6 +125,10 @@ public class OSGrenade extends MonoBehaviour {
 
 	public function Start () {
 		lineRenderer = this.GetComponent.< LineRenderer > ();
+
+		if ( explosion ) {
+			explosion.SetActive ( false );
+		}
 	}
 
 	public function Update () {

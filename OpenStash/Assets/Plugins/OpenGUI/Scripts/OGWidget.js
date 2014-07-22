@@ -50,6 +50,7 @@ public class OGWidget extends MonoBehaviour {
 		public var yOffset : float = 0.0;
 	}
 
+	public var root : OGRoot;
 	public var isDrawn : boolean = true;
 	public var isDisabled : boolean = false;
 	public var isSelectable : boolean = false;
@@ -75,8 +76,6 @@ public class OGWidget extends MonoBehaviour {
 	@HideInInspector public var outOfBounds : boolean = false;
 	@HideInInspector public var isDirty : boolean = false;
 	@HideInInspector public var isAlwaysOnTop : boolean = false;
-	@HideInInspector public var root : OGRoot;
-	
 	
 	//////////////////
 	// Calculations
@@ -85,7 +84,23 @@ public class OGWidget extends MonoBehaviour {
 	public function ToEnum () : OGWidgetType {
 		return OGSkin.GetWidgetEnum ( this );
 	}
-	
+
+	// Get scaled rect
+	public function get scaledRct () : Rect {
+		var result : Rect = drawRct;
+
+		var root : OGRoot = OGRoot.GetInstance ();
+
+		if ( root ) {
+			result.x *= root.ratio.x;
+			result.width *= root.ratio.x;
+			result.y *= root.ratio.y;
+			result.height *= root.ratio.y;
+		}
+
+		return result;
+	}
+
 	// Find child
 	public function FindChild ( n : String ) : GameObject {
 		for ( var i : int = 0; i < this.transform.childCount; i++ ) {
@@ -119,14 +134,17 @@ public class OGWidget extends MonoBehaviour {
 	}
 	
 	public function CheckMouseOver ( rect : Rect ) : boolean {
-		var x : float = Input.mousePosition.x;
-		var y : float = Input.mousePosition.y;
-	
+		if ( !root ) {
+			root = OGRoot.GetInstance();
+		}	
+		
+		var pos : Vector2 = new Vector2 ( Input.mousePosition.x * root.reverseRatio.x, Input.mousePosition.y * root.reverseRatio.y );
+
 		if ( SystemInfo.deviceType == DeviceType.Handheld && Input.touchCount == 0 ) {
 			return false;
 		}
 
-		return x > rect.x && y > rect.y && y < rect.y + rect.height && x < rect.x + rect.width;
+		return rect.Contains ( pos );
 	}
 	
 	public function CheckMouseOver ( rect1 : Rect, rect2 : Rect ) : boolean {
@@ -163,7 +181,7 @@ public class OGWidget extends MonoBehaviour {
 			newPos.y += this.transform.lossyScale.y;
 		}
 
-		newPos.y = Screen.height - newPos.y;
+		newPos.y = root.screenHeight - newPos.y;
 		
 		return newPos;
 	}
@@ -181,15 +199,15 @@ public class OGWidget extends MonoBehaviour {
 		}
 		
 		if ( stretch.width == ScreenSize.ScreenWidth ) {
-			newScale.x = ( Screen.width * stretch.widthFactor ) + stretch.widthOffset;
+			newScale.x = ( root.screenWidth * stretch.widthFactor ) + stretch.widthOffset;
 		} else if ( stretch.width == ScreenSize.ScreenHeight ) {
-			newScale.x = ( Screen.height * stretch.widthFactor ) + stretch.widthOffset;
+			newScale.x = ( root.screenHeight * stretch.widthFactor ) + stretch.widthOffset;
 		}
 		
 		if ( stretch.height == ScreenSize.ScreenWidth ) {
-			newScale.y = ( Screen.width * stretch.heightFactor ) + stretch.heightOffset;
+			newScale.y = ( root.screenWidth * stretch.heightFactor ) + stretch.heightOffset;
 		} else if ( stretch.height == ScreenSize.ScreenHeight ) {
-			newScale.y = ( Screen.height * stretch.heightFactor ) + stretch.heightOffset;
+			newScale.y = ( root.screenHeight * stretch.heightFactor ) + stretch.heightOffset;
 		}
 		
 		if ( !scrollView ) {
@@ -211,17 +229,17 @@ public class OGWidget extends MonoBehaviour {
 		if ( anchor.x == RelativeX.Left ) {
 			newPos.x = anchor.xOffset;
 		} else if ( anchor.x == RelativeX.Center ) {
-			newPos.x = ( Screen.width / 2 ) + anchor.xOffset;
+			newPos.x = ( root.screenWidth / 2 ) + anchor.xOffset;
 		} else if ( anchor.x == RelativeX.Right ) {
-			newPos.x = Screen.width + anchor.xOffset;
+			newPos.x = root.screenWidth + anchor.xOffset;
 		}
 		
 		if ( anchor.y == RelativeY.Top ) {
 			newPos.y = anchor.yOffset;
 		} else if ( anchor.y == RelativeY.Center ) {
-			newPos.y = ( Screen.height / 2 ) + anchor.yOffset;
+			newPos.y = ( root.screenHeight / 2 ) + anchor.yOffset;
 		} else if ( anchor.y == RelativeY.Bottom ) {
-			newPos.y = Screen.height + anchor.yOffset;
+			newPos.y = root.screenHeight + anchor.yOffset;
 		}
 
 		this.transform.position = newPos;
@@ -260,6 +278,8 @@ public class OGWidget extends MonoBehaviour {
 	
 	// Apply all calculations
 	public function Recalculate () {
+		if ( !root ) { return; }
+		
 		var texture : OGTexture = this as OGTexture;
 		var drawScl : Vector3 = RecalcScale ();
 		var drawPos : Vector3 = RecalcPosition ();
@@ -288,20 +308,12 @@ public class OGWidget extends MonoBehaviour {
 
 	
 	//////////////////
-	// Returns
-	//////////////////
-	public function GetRoot () : OGRoot {
-		if ( !root ) {
-			root = GameObject.FindObjectOfType.<OGRoot>();
-		}
-		
-		return root;
-	}
-	
-
-	//////////////////
 	// Init
 	//////////////////
+	public function Awake () {
+		root = OGRoot.GetInstance ();
+	}
+	
 	public function Start () {
 		Recalculate ();
 	}
@@ -321,13 +333,13 @@ public class OGWidget extends MonoBehaviour {
 	// Update
 	//////////////////
 	public function UpdateWidget () {} 
-	public function GetDefaultStyles () {
-		var skin : OGSkin = GetRoot().skin;
+	public function ApplyDefaultStyles () {
+		var skin : OGSkin = root.skin;
 		
 		if ( !skin ) {
 			Debug.LogWarning ( "OpenGUI | No OGSkin attached to OGRoot" );
 		} else {
-			skin.GetDefaultStyles ( this );
+			skin.ApplyDefaultStyles ( this );
 		}
 	}
 
@@ -336,6 +348,7 @@ public class OGWidget extends MonoBehaviour {
 	// Draw
 	//////////////////
 	public function DrawGL () {}
+	public function DrawLine () {}
 	public function DrawSkin () {}
 	public function DrawText () {}
 }

@@ -28,8 +28,8 @@ public class InventoryUI extends MonoBehaviour {
 		}
 
 		var newCell : OGTexture = new GameObject( y + "-" + x, OGTexture, OGButton, OGLabel ).GetComponent.<OGTexture>();
-		newCell.GetComponent.<OGButton>().GetDefaultStyles ();
-		newCell.GetComponent.<OGLabel>().GetDefaultStyles ();
+		newCell.GetComponent.<OGButton>().ApplyDefaultStyles ();
+		newCell.GetComponent.<OGLabel>().ApplyDefaultStyles ();
 		newCell.transform.parent = grid.transform;
 		
 		cells = grid.GetComponentsInChildren.<OGTexture>(true);
