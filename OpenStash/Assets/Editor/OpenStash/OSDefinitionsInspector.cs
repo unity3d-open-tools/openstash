@@ -1,12 +1,14 @@
+using UnityEditor;
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
-#pragma strict
-
-@CustomEditor ( OSDefinitions )
-public class OSDefinitionsInspector extends Editor {
-	private var resourceWarning : boolean = false;
+[CustomEditor (typeof(OSDefinitions))]
+public class OSDefinitionsInspector : Editor {
+	private bool resourceWarning = false;
 	
-	override function OnInspectorGUI () {
-		var definitions : OSDefinitions = target as OSDefinitions;
+	public override void OnInspectorGUI () {
+		OSDefinitions definitions = (OSDefinitions) target;
 		
 		EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
 		
@@ -17,7 +19,7 @@ public class OSDefinitionsInspector extends Editor {
 		if ( !definitions.gameObject.activeInHierarchy ) {
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
-				var path : String = AssetDatabase.GetAssetPath ( definitions.gameObject );
+				string path = AssetDatabase.GetAssetPath ( definitions.gameObject );
 				if ( path.Contains ( "Assets/Resources/" ) ) {
 					path = path.Replace ( "Assets/Resources/", "" );
 					path = path.Replace ( ".prefab", "" );
@@ -48,15 +50,15 @@ public class OSDefinitionsInspector extends Editor {
 		// Categories
 		EditorGUILayout.LabelField ( "Categories", EditorStyles.boldLabel );
 		
-		var tmpCat : List.< OSCategory >;
-		var tmpStr : List.< String >;
+		List< OSCategory > tmpCat;
+		List< string > tmpStr;
 
-		for ( var c : int = 0; c < definitions.categories.Length; c++ ) {
+		for ( int c = 0; c < definitions.categories.Length; c++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
 			GUI.backgroundColor = Color.red;
 			if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpCat = new List.< OSCategory > ( definitions.categories );
+				tmpCat = new List< OSCategory > ( definitions.categories );
 
 				tmpCat.RemoveAt ( c );
 
@@ -69,14 +71,14 @@ public class OSDefinitionsInspector extends Editor {
 			
 			EditorGUILayout.EndHorizontal ();
 			
-			for ( var sc : int = 0; sc < definitions.categories[c].subcategories.Length; sc++ ) {
+			for ( int sc = 0; sc < definitions.categories[c].subcategories.Length; sc++ ) {
 				EditorGUILayout.BeginHorizontal ();
 				
 				GUILayout.Space ( 104 );
 				
 				GUI.backgroundColor = Color.red;
 				if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					tmpStr = new List.< String > ( definitions.categories[c].subcategories );
+					tmpStr = new List< string > ( definitions.categories[c].subcategories );
 
 					tmpStr.RemoveAt ( sc );
 
@@ -95,7 +97,7 @@ public class OSDefinitionsInspector extends Editor {
 			GUILayout.Space ( 104 );
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpStr = new List.< String > ( definitions.categories[c].subcategories );
+				tmpStr = new List< string > ( definitions.categories[c].subcategories );
 
 				tmpStr.Add ( "Subcategory" );
 
@@ -110,7 +112,7 @@ public class OSDefinitionsInspector extends Editor {
 
 		GUI.backgroundColor = Color.green;
 		if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-			tmpCat = new List.< OSCategory > ( definitions.categories );
+			tmpCat = new List< OSCategory > ( definitions.categories );
 
 			tmpCat.Add ( new OSCategory () );
 
@@ -123,14 +125,14 @@ public class OSDefinitionsInspector extends Editor {
 		// Attributes
 		EditorGUILayout.LabelField ( "Attributes", EditorStyles.boldLabel );
 
-		var tmpAttr : List.< OSAttributeDefinition >;
+		List< OSAttributeDefinition > tmpAttr;
 
-		for ( var a : int = 0; a < definitions.attributes.Length; a++ ) {
+		for ( int a = 0; a < definitions.attributes.Length; a++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
 			GUI.backgroundColor = Color.red;
 			if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpAttr = new List.< OSAttributeDefinition > ( definitions.attributes );
+				tmpAttr = new List< OSAttributeDefinition > ( definitions.attributes );
 
 				tmpAttr.RemoveAt ( a );
 
@@ -154,7 +156,7 @@ public class OSDefinitionsInspector extends Editor {
 		
 		GUI.backgroundColor = Color.green;
 		if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-			tmpAttr = new List.< OSAttributeDefinition > ( definitions.attributes );
+			tmpAttr = new List< OSAttributeDefinition > ( definitions.attributes );
 
 			tmpAttr.Add ( new OSAttributeDefinition () );
 
@@ -167,14 +169,14 @@ public class OSDefinitionsInspector extends Editor {
 		// Ammunitions
 		EditorGUILayout.LabelField ( "Ammunitions", EditorStyles.boldLabel );
 
-		var tmpAmmo : List.< OSAmmunition >;
+		List< OSAmmunition > tmpAmmo;
 
-		for ( a = 0; a < definitions.ammunitions.Length; a++ ) {
+		for ( int a = 0; a < definitions.ammunitions.Length; a++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
 			GUI.backgroundColor = Color.red;
 			if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpAmmo = new List.< OSAmmunition > ( definitions.ammunitions );
+				tmpAmmo = new List< OSAmmunition > ( definitions.ammunitions );
 
 				tmpAmmo.RemoveAt ( a );
 
@@ -186,7 +188,7 @@ public class OSDefinitionsInspector extends Editor {
 			EditorGUILayout.BeginVertical ();
 
 			definitions.ammunitions[a].name = EditorGUILayout.TextField ( "Name", definitions.ammunitions[a].name );
-			definitions.ammunitions[a].projectile = EditorGUILayout.ObjectField ( "Projectile", definitions.ammunitions[a].projectile, typeof ( OSProjectile ), false ) as OSProjectile;
+			definitions.ammunitions[a].projectile = (OSProjectile) EditorGUILayout.ObjectField ( "Projectile", definitions.ammunitions[a].projectile, typeof ( OSProjectile ), false );
 			
 			EditorGUILayout.EndVertical ();
 
@@ -198,7 +200,7 @@ public class OSDefinitionsInspector extends Editor {
 		
 		GUI.backgroundColor = Color.green;
 		if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-			tmpAmmo = new List.< OSAmmunition > ( definitions.ammunitions );
+			tmpAmmo = new List< OSAmmunition > ( definitions.ammunitions );
 
 			tmpAmmo.Add ( new OSAmmunition () );
 
@@ -209,14 +211,14 @@ public class OSDefinitionsInspector extends Editor {
 		// Currencies
 		EditorGUILayout.LabelField ( "Currencies", EditorStyles.boldLabel );
 
-		var tmpCurrency : List.< OSCurrency >;
+		List< OSCurrency > tmpCurrency;
 
-		for ( a = 0; a < definitions.currencies.Length; a++ ) {
+		for ( int a = 0; a < definitions.currencies.Length; a++ ) {
 			EditorGUILayout.BeginHorizontal ();
 			
 			GUI.backgroundColor = Color.red;
 			if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpCurrency = new List.< OSCurrency > ( definitions.currencies );
+				tmpCurrency = new List< OSCurrency > ( definitions.currencies );
 
 				tmpCurrency.RemoveAt ( a );
 
@@ -239,7 +241,7 @@ public class OSDefinitionsInspector extends Editor {
 		
 		GUI.backgroundColor = Color.green;
 		if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-			tmpCurrency = new List.< OSCurrency > ( definitions.currencies );
+			tmpCurrency = new List< OSCurrency > ( definitions.currencies );
 
 			tmpCurrency.Add ( new OSCurrency () );
 

@@ -1,14 +1,15 @@
-#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
-import System.Collections.Generic;
-
-@CustomEditor ( OSMelee )
-public class OSMeleeInspector extends Editor {
-	override function OnInspectorGUI () {
-		var melee : OSMelee = target as OSMelee;
+[CustomEditor (typeof(OSMelee))]
+public class OSMeleeInspector : Editor {
+	public override void OnInspectorGUI () {
+		OSMelee melee = (OSMelee) target;
 
 		if ( !melee.item ) {
-			melee.item = melee.GetComponent.< OSItem > ();
+			melee.item = melee.GetComponent< OSItem > ();
 
 			GUI.color = Color.red;
 			EditorGUILayout.LabelField ( "There is no OSItem component on this object!", EditorStyles.boldLabel );
@@ -41,10 +42,10 @@ public class OSMeleeInspector extends Editor {
 		EditorGUILayout.LabelField ( "Inherited animations", EditorStyles.boldLabel );
 
 		if ( melee.animation ) {
-			var animationNames : List.< String > = new List.< String  > ();
+			List< string > animationNames = new List< string  > ();
 
-			for ( var state : Object in melee.animation ) {
-				animationNames.Add ( ( state as AnimationState ).name );
+			foreach ( AnimationState state in melee.animation ) {
+				animationNames.Add ( state.name );
 			}
 
 			melee.firingAnimationIndex = EditorGUILayout.Popup ( "Equip", melee.equippingAnimationIndex, animationNames.ToArray () );

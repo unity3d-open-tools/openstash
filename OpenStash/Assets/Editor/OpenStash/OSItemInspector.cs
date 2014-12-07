@@ -1,19 +1,20 @@
-#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
-import System.Collections.Generic;
-
-@CustomEditor ( OSItem )
-public class OSItemInspector extends Editor {
-	private var resourceWarning : boolean = false;
+[CustomEditor (typeof(OSItem))]
+public class OSItemInspector : Editor {
+	private bool resourceWarning = false;
 	
-	override function OnInspectorGUI () {
-		var item : OSItem = target as OSItem;
+	public override void OnInspectorGUI () {
+		OSItem item = (OSItem) target;
 		
 		// Meta
 		EditorGUILayout.LabelField ( "Id", EditorStyles.boldLabel );
 		item.id = EditorGUILayout.TextField ( "Name", item.id );
 		item.description = EditorGUILayout.TextField ( "Description", item.description );
-		item.definitions = EditorGUILayout.ObjectField ( "Definitions", item.definitions, typeof ( OSDefinitions ), false ) as OSDefinitions;
+		item.definitions = (OSDefinitions) EditorGUILayout.ObjectField ( "Definitions", item.definitions, typeof ( OSDefinitions ), false );
 		
 		if ( !item.definitions ) {
 			GUI.color = Color.red;
@@ -31,7 +32,7 @@ public class OSItemInspector extends Editor {
 			if ( !item.gameObject.activeInHierarchy ) {
 				GUI.backgroundColor = Color.green;
 				if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
-					var path : String = AssetDatabase.GetAssetPath ( item.gameObject );
+					string path = AssetDatabase.GetAssetPath ( item.gameObject );
 					if ( path.Contains ( "Assets/Resources/" ) ) {
 						path = path.Replace ( "Assets/Resources/", "" );
 						path = path.Replace ( ".prefab", "" );
@@ -88,12 +89,12 @@ public class OSItemInspector extends Editor {
 			
 			EditorGUILayout.BeginVertical ();
 			
-			for ( var i : int = 0; i < item.attributes.Length; i++ ) {
+			for ( int i = 0; i < item.attributes.Length; i++ ) {
 				EditorGUILayout.BeginHorizontal ();
 				
 				GUI.backgroundColor = Color.red;
 				if ( GUILayout.Button ( "x" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					var tmpAttr : List.< OSAttribute > = new List.< OSAttribute > ( item.attributes );
+					List< OSAttribute > tmpAttr = new List< OSAttribute > ( item.attributes );
 
 					tmpAttr.RemoveAt ( i );
 
@@ -112,7 +113,7 @@ public class OSItemInspector extends Editor {
 			
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpAttr = new List.< OSAttribute > ( item.attributes );
+				List< OSAttribute > tmpAttr = new List< OSAttribute > ( item.attributes );
 
 				tmpAttr.Add ( new OSAttribute ( item.definitions ) );
 
@@ -131,12 +132,12 @@ public class OSItemInspector extends Editor {
 			
 			EditorGUILayout.BeginVertical ();
 			
-			for ( i = 0; i < item.sounds.Length; i++ ) {
+			for ( int i = 0; i < item.sounds.Length; i++ ) {
 				EditorGUILayout.BeginHorizontal ();
 				
 				GUI.backgroundColor = Color.red;
 				if ( GUILayout.Button ( "x" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					var tmpSound : List.< AudioClip > = new List.< AudioClip > ( item.sounds );
+					List< AudioClip > tmpSound = new List< AudioClip > ( item.sounds );
 
 					tmpSound.RemoveAt ( i );
 
@@ -145,14 +146,14 @@ public class OSItemInspector extends Editor {
 				}
 				GUI.backgroundColor = Color.white;
 				
-				item.sounds[i] = EditorGUILayout.ObjectField ( item.sounds[i], typeof ( AudioClip ), false ) as AudioClip;
+				item.sounds[i] = (AudioClip) EditorGUILayout.ObjectField ( item.sounds[i], typeof ( AudioClip ), false );
 				
 				EditorGUILayout.EndHorizontal ();
 			}
 			
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmpSound = new List.< AudioClip > ( item.sounds );
+				List< AudioClip > tmpSound = new List< AudioClip > ( item.sounds );
 
 				tmpSound.Add ( null );
 
@@ -184,8 +185,8 @@ public class OSItemInspector extends Editor {
 			EditorGUILayout.Space ();
 			EditorGUILayout.LabelField ( "Textures", EditorStyles.boldLabel );
 
-			item.thumbnail = EditorGUILayout.ObjectField ( "Thumbnail", item.thumbnail as Object, typeof ( Texture2D ), false ) as Texture2D;
-			item.preview = EditorGUILayout.ObjectField ( "Preview", item.preview as Object, typeof ( Texture2D ), false ) as Texture2D;
+			item.thumbnail = (Texture2D) EditorGUILayout.ObjectField ( "Thumbnail", item.thumbnail as Object, typeof ( Texture2D ), false );
+			item.preview = (Texture2D) EditorGUILayout.ObjectField ( "Preview", item.preview as Object, typeof ( Texture2D ), false );
 
 			if ( GUI.changed ) {
 				OSInventoryInspector.SavePrefab ( target );

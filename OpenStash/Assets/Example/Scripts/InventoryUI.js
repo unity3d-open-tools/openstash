@@ -62,7 +62,7 @@ public class InventoryUI extends MonoBehaviour {
 				info.text += "\n\n";
 			}
 
-			for ( var attr : OSAttribute in selectedSlot.item.attributes ) {
+			for ( var attr : OSAttribute in selectedSlot.item.GetAttributes() ) {
 				info.text += attr.name + ": " + attr.value + "\n";
 			}
 

@@ -1,14 +1,16 @@
-#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
-import System.Collections.Generic;
-
-@CustomEditor ( OSFirearm )
-public class OSFirearmInspector extends Editor {
-	override function OnInspectorGUI () {
-		var firearm : OSFirearm = target as OSFirearm;
+[CustomEditor (typeof(OSFirearm))]
+[System.Serializable]
+public class OSFirearmInspector : Editor {
+	public override void OnInspectorGUI () {
+		OSFirearm firearm = (OSFirearm) target;
 
 		if ( !firearm.item ) {
-			firearm.item = firearm.GetComponent.< OSItem > ();
+			firearm.item = firearm.GetComponent< OSItem > ();
 
 			GUI.color = Color.red;
 			EditorGUILayout.LabelField ( "There is no OSItem component on this object!", EditorStyles.boldLabel );
@@ -46,10 +48,10 @@ public class OSFirearmInspector extends Editor {
 		EditorGUILayout.LabelField ( "Inherited animations", EditorStyles.boldLabel );
 
 		if ( firearm.animation ) {
-			var animationNames : List.< String > = new List.< String  > ();
+			List< string > animationNames = new List< string  > ();
 
-			for ( var state : Object in firearm.animation ) {
-				animationNames.Add ( ( state as AnimationState ).name );
+			foreach ( AnimationState state in firearm.animation ) {
+				animationNames.Add ( state.name );
 			}
 
 			firearm.firingAnimationIndex = EditorGUILayout.Popup ( "Equip", firearm.equippingAnimationIndex, animationNames.ToArray () );

@@ -1,15 +1,16 @@
-#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
-import System.Collections.Generic;
-
-@CustomEditor ( OSSkillTree )
-public class OSSkillTreeInspector extends Editor {
-	private var rootIndex : int = 0;
+[CustomEditor (typeof(OSSkillTree))]
+public class OSSkillTreeInspector : Editor {
+	private int rootIndex = 0;
 	
-	override function OnInspectorGUI () {
-		var tree : OSSkillTree = target as OSSkillTree;
+	public override void OnInspectorGUI () {
+		OSSkillTree tree = (OSSkillTree) target;
 		
-		tree.definitions = EditorGUILayout.ObjectField ( "Definitions", tree.definitions, typeof ( OSDefinitions ), false ) as OSDefinitions;
+		tree.definitions = (OSDefinitions) EditorGUILayout.ObjectField ( "Definitions", tree.definitions, typeof ( OSDefinitions ), false );
 		
 		if ( !tree.definitions ) {
 			GUI.color = Color.red;
@@ -17,13 +18,13 @@ public class OSSkillTreeInspector extends Editor {
 			GUI.color = Color.white;
 
 		} else {
-			tree.eventHandler = EditorGUILayout.ObjectField ( "Event handler", tree.eventHandler, typeof ( GameObject ), true ) as GameObject;
+			tree.eventHandler = (GameObject) EditorGUILayout.ObjectField ( "Event handler", tree.eventHandler, typeof ( GameObject ), true );
 			
 			EditorGUILayout.Space ();
 
-			var rootStrings : String[] = new String [tree.roots.Length];
+			string[] rootStrings = new string [tree.roots.Length];
 
-			for ( var i : int = 0; i < rootStrings.Length; i++ ) {
+			for ( int i = 0; i < rootStrings.Length; i++ ) {
 				rootStrings[i] = tree.roots[i].name;
 			}
 
@@ -34,7 +35,7 @@ public class OSSkillTreeInspector extends Editor {
 			GUI.backgroundColor = Color.red;
 			if ( GUILayout.Button ( "x", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
 				if ( tree.roots.Length > 1 ) {
-					var tmp : List.< OSSkillTree.Root > = new List.< OSSkillTree.Root > ( tree.roots );
+					List< OSSkillTree.Root > tmp = new List< OSSkillTree.Root > ( tree.roots );
 		
 					tmp.RemoveAt ( rootIndex );
 
@@ -49,9 +50,9 @@ public class OSSkillTreeInspector extends Editor {
 			
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				tmp = new List.< OSSkillTree.Root > ( tree.roots );
+				List< OSSkillTree.Root > tmp = new List< OSSkillTree.Root > ( tree.roots );
 	
-				var newRoot : OSSkillTree.Root = new OSSkillTree.Root ();
+				OSSkillTree.Root newRoot = new OSSkillTree.Root ();
 				newRoot.name = "New Root";
 				tmp.Add ( newRoot );
 
@@ -79,7 +80,7 @@ public class OSSkillTreeInspector extends Editor {
 
 			EditorGUILayout.BeginVertical ();
 
-			for ( var skill : OSSkillTree.Skill in tree.roots[rootIndex].skills ) {
+			foreach ( OSSkillTree.Skill skill in tree.roots[rootIndex].skills ) {
 				skill.name = EditorGUILayout.TextField ( "Name", skill.name );
 				skill.description = EditorGUILayout.TextField ( "Description", skill.description );
 				skill.level = EditorGUILayout.IntField ( "Level", skill.level );
@@ -97,9 +98,9 @@ public class OSSkillTreeInspector extends Editor {
 
 				EditorGUILayout.BeginVertical ();
 
-				i = 0;
+				int i = 0;
 
-				for ( var attr : OSAttribute in skill.attributes ) {
+				foreach ( OSAttribute attr in skill.attributes ) {
 					EditorGUILayout.BeginHorizontal ();
 					
 					attr.definitions = tree.definitions;
@@ -109,7 +110,7 @@ public class OSSkillTreeInspector extends Editor {
 					
 					GUI.backgroundColor = Color.red;
 					if ( GUILayout.Button ( "x" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-						var tmpAttr : List.< OSAttribute > = new List.< OSAttribute > ( skill.attributes );
+						List< OSAttribute > tmpAttr = new List< OSAttribute > ( skill.attributes );
 
 						tmpAttr.RemoveAt ( i );
 
@@ -125,7 +126,7 @@ public class OSSkillTreeInspector extends Editor {
 				
 				GUI.backgroundColor = Color.green;
 				if ( GUILayout.Button ( "+" , GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-					tmpAttr = new List.< OSAttribute > ( skill.attributes );
+					List< OSAttribute > tmpAttr = new List< OSAttribute > ( skill.attributes );
 
 					tmpAttr.Add ( new OSAttribute ( tree.definitions ) );
 
@@ -146,9 +147,9 @@ public class OSSkillTreeInspector extends Editor {
 			
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "+", GUILayout.Width ( 28 ), GUILayout.Height ( 14 ) ) ) {
-				var skillTmp : List.< OSSkillTree.Skill > = new List.< OSSkillTree.Skill > ( tree.roots[rootIndex].skills );
+				List< OSSkillTree.Skill > skillTmp = new List< OSSkillTree.Skill > ( tree.roots[rootIndex].skills );
 	
-				var newSkill : OSSkillTree.Skill = new OSSkillTree.Skill ();
+				OSSkillTree.Skill newSkill = new OSSkillTree.Skill ();
 				newSkill.name = "New Skill";
 				skillTmp.Add ( newSkill );
 

@@ -1,14 +1,16 @@
-﻿#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
 
-@CustomEditor ( OSInventory )
-public class OSInventoryInspector extends Editor {
-	private var selected : OSSlot;
+[CustomEditor (typeof(OSInventory))]
+public class OSInventoryInspector : Editor {
+	private OSSlot selected;
 
-	public static function SavePrefab ( target : UnityEngine.Object ) {
-		var selectedGameObject : GameObject;
-		var selectedPrefabType : PrefabType;
-		var parentGameObject : GameObject;
-		var prefabParent : UnityEngine.Object;
+	public static void SavePrefab ( UnityEngine.Object target ) {
+		GameObject selectedGameObject;
+		PrefabType selectedPrefabType;
+		GameObject parentGameObject;
+		UnityEngine.Object prefabParent;
 		     
 		selectedGameObject = Selection.gameObjects[0];
 		selectedPrefabType = PrefabUtility.GetPrefabType(selectedGameObject);
@@ -23,9 +25,9 @@ public class OSInventoryInspector extends Editor {
 	    	}
 	}
 
-	override function OnInspectorGUI () {
-		var inventory : OSInventory = target as OSInventory;
-		inventory.definitions = EditorGUILayout.ObjectField ( "Definitions", inventory.definitions, typeof ( OSDefinitions ), false ) as OSDefinitions;
+	public override void OnInspectorGUI () {
+		OSInventory inventory = (OSInventory) target;
+		inventory.definitions = (OSDefinitions) EditorGUILayout.ObjectField ( "Definitions", inventory.definitions, typeof ( OSDefinitions ), false );
 		
 		if ( !inventory.definitions ) {
 			GUI.color = Color.red;
@@ -38,15 +40,15 @@ public class OSInventoryInspector extends Editor {
 		
 		EditorGUILayout.LabelField ( "Currency amounts", EditorStyles.boldLabel );
 
-		for ( var i : int = 0; i < inventory.definitions.currencies.Length; i++ ) {
-			var def : OSCurrency = inventory.definitions.currencies[i];
+		for ( int i = 0; i < inventory.definitions.currencies.Length; i++ ) {
+			OSCurrency def = inventory.definitions.currencies[i];
 			
 			EditorGUILayout.BeginHorizontal ();
 
 			inventory.CheckCurrency ( i );
 
-			var oldAmount : int = inventory.GetCurrencyAmount ( def.name );
-			var newAmount : int = EditorGUILayout.IntField ( def.name, oldAmount );
+			int oldAmount = inventory.GetCurrencyAmount ( def.name );
+			int newAmount = EditorGUILayout.IntField ( def.name, oldAmount );
 		
 			if ( oldAmount != newAmount ) {
 				inventory.SetCurrencyAmount ( def.name, newAmount );
@@ -57,21 +59,20 @@ public class OSInventoryInspector extends Editor {
 		
 		EditorGUILayout.Space ();
 
-		var event : Event = Event.current;
+		Event evt = Event.current;
 
 		inventory.grid.inventory = inventory;
 
 		// Grid
-		var slot : OSSlot;
-		var slotSize : int = 60;
-		var mouseDown : boolean = event.type == EventType.MouseDown;
-		var mouseUp : boolean = event.type == EventType.MouseUp;
-		var keyLeft : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.LeftArrow;
-		var keyRight : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.RightArrow;
-		var keyUp : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.UpArrow;
-		var keyDown : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.DownArrow;
-		var keyTab : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.Tab;
-		var keyBackspace : boolean = event.type == EventType.KeyDown && event.keyCode == KeyCode.Backspace;
+		OSSlot slot = null;
+		int slotSize = 60;
+		bool mouseDown = evt.type == EventType.MouseDown;
+		bool keyLeft = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.LeftArrow;
+		bool keyRight = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.RightArrow;
+		bool keyUp = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.UpArrow;
+		bool keyDown = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.DownArrow;
+		bool keyTab = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Tab;
+		bool keyBackspace = evt.type == EventType.KeyDown && evt.keyCode == KeyCode.Backspace;
 
 		EditorGUILayout.BeginHorizontal ();
 		
@@ -86,31 +87,31 @@ public class OSInventoryInspector extends Editor {
 	
 		inventory.grid.height = EditorGUILayout.IntField ( inventory.grid.height, GUILayout.Width ( 30 ) );
 	
-		var rect : Rect = EditorGUILayout.GetControlRect ( GUILayout.Width ( slotSize * inventory.grid.width ), GUILayout.Height ( slotSize * inventory.grid.height ) );	
-		var xPos : int = rect.x;
-		var yPos : int = rect.y;
-		var skip : boolean [ , ] = inventory.grid.GetSkippedSlots();
+		Rect rect = EditorGUILayout.GetControlRect ( GUILayout.Width ( slotSize * inventory.grid.width ), GUILayout.Height ( slotSize * inventory.grid.height ) );	
+		int xPos = (int)rect.x;
+		int yPos = (int)rect.y;
+		bool [ , ] skip = inventory.grid.GetSkippedSlots();
 	
-		if ( mouseDown && !rect.Contains ( event.mousePosition ) ) {
+		if ( mouseDown && !rect.Contains ( evt.mousePosition ) ) {
 			selected = null;
 		}
 
 
-		for ( var x : int = 0; x < inventory.grid.width; x++ ) {
-			for ( var y : int = 0; y < inventory.grid.height; y++ ) {
+		for ( int x = 0; x < inventory.grid.width; x++ ) {
+			for ( int y = 0; y < inventory.grid.height; y++ ) {
 				if ( skip [ x, y ] == true ) {
 					continue;
 				
 				} else {
-					var tex : Texture2D = null;
-					var item : OSItem;
-					var slotRect : Rect; 
+					Texture2D tex = null;
+					OSItem item;
+					Rect slotRect; 
 					slot = inventory.GetSlot ( x, y ); 
 					
-					xPos = rect.x + x * slotSize;
-					yPos = rect.y + y * slotSize;
+					xPos = (int)rect.x + x * slotSize;
+					yPos = (int)rect.y + y * slotSize;
 
-					if ( slot && slot.item && !slot.hidden ) {
+					if ( slot != null && slot.item && !slot.hidden ) {
 						item = slot.item;
 						tex = item.preview;
 						slotRect = new Rect ( xPos, yPos, slotSize * slot.scale.x, slotSize * slot.scale.y );
@@ -132,14 +133,14 @@ public class OSInventoryInspector extends Editor {
 							GUI.Label ( new Rect ( xPos + 4, yPos + slot.scale.y * slotSize - 20, slot.scale.x * slotSize, 20 ), slot.quantity.ToString() );
 						}
 						
-						if ( slotRect.Contains ( event.mousePosition ) && mouseDown ) {
+						if ( slotRect.Contains ( evt.mousePosition ) && mouseDown ) {
 							selected = slot;
 						}
 
 					} else {
 						slotRect = new Rect ( xPos, yPos, slotSize, slotSize );
 						
-						if ( slotRect.Contains ( event.mousePosition ) && mouseDown ) {
+						if ( slotRect.Contains ( evt.mousePosition ) && mouseDown ) {
 							selected = null;
 						}
 						
@@ -154,13 +155,13 @@ public class OSInventoryInspector extends Editor {
 
 		EditorGUILayout.BeginVertical ();	
 		
-		if ( selected && selected.item ) {
+		if ( selected != null && selected.item ) {
 			EditorGUILayout.LabelField ( selected.item.id, EditorStyles.boldLabel );
 			EditorGUILayout.LabelField ( selected.item.description );
 
 			EditorGUILayout.Space ();
 
-			for ( var attribute : OSAttribute in selected.item.attributes ) {
+			foreach ( OSAttribute attribute in selected.item.attributes ) {
 				EditorGUILayout.BeginHorizontal ();
 				
 				EditorGUILayout.LabelField ( attribute.name + ":", GUILayout.Width ( 80 ) );
@@ -180,8 +181,8 @@ public class OSInventoryInspector extends Editor {
 
 		EditorGUILayout.Space ();
 
-		var addItem : OSItem;
-		addItem = EditorGUILayout.ObjectField ( "Add item", addItem, OSItem, true ) as OSItem;
+		OSItem addItem = null;
+		addItem = (OSItem) EditorGUILayout.ObjectField ( "Add item", addItem, typeof(OSItem), true );
 
 		if ( addItem ) {
 			inventory.AddItem ( addItem );
@@ -194,38 +195,38 @@ public class OSInventoryInspector extends Editor {
 		GUI.backgroundColor = Color.white;
 
 		// ^ Move slot
-		if ( selected && selected.item ) {
+		if ( selected != null && selected.item ) {
 			if ( keyLeft ) {
 				inventory.grid.Move ( selected, selected.x - 1, selected.y );
-				event.Use ();
+				evt.Use ();
 			
 			} else if ( keyRight ) {
 				inventory.grid.Move ( selected, selected.x + 1, selected.y );
-				event.Use ();
+				evt.Use ();
 
 
 			} else if ( keyDown ) {
 				inventory.grid.Move ( selected, selected.x, selected.y + 1 );
-				event.Use ();
+				evt.Use ();
 
 			
 			} else if ( keyUp ) {
 				inventory.grid.Move ( selected, selected.x, selected.y - 1 );
-				event.Use ();
+				evt.Use ();
 
 			} else if ( keyBackspace ) {
 				inventory.RemoveItem ( selected.item );
-				event.Use ();
+				evt.Use ();
 			
 			}
 
 		}
 		
 		if ( keyTab ) {
-			event.Use ();
+			evt.Use ();
 			
-			if ( selected && selected.item ) {
-				i = inventory.GetItemIndex ( selected.item );
+			if ( selected != null && selected.item ) {
+				int i = inventory.GetItemIndex ( selected.item );
 
 				if ( i < inventory.slots.Count - 1 ) {
 					i++;

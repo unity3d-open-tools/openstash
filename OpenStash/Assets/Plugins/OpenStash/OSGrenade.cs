@@ -1,56 +1,57 @@
-﻿#pragma strict
+using UnityEngine;
+using System.Collections;
 
-public class OSGrenade extends MonoBehaviour {
+public class OSGrenade : MonoBehaviour {
 	public enum ExplodeTrigger {
 		None,
 		Timed,
 		OnCollision
 	}
 
-	@HideInInspector public var item : OSItem;
+	[HideInInspector] public OSItem item;
 	
-	@HideInInspector public var firingRateIndex : int = 0;
-	@HideInInspector public var damageIndex : int = 0;
-	@HideInInspector public var rangeIndex : int = 0;
+	[HideInInspector] public int firingRateIndex = 0;
+	[HideInInspector] public int damageIndex = 0;
+	[HideInInspector] public int rangeIndex = 0;
 	
-	@HideInInspector public var equippingSoundIndex : int = 0;
-	@HideInInspector public var explodingSoundIndex : int = 0;
-	@HideInInspector public var holsteringSoundIndex : int = 0;
-	@HideInInspector public var throwingSoundIndex : int = 0;
+	[HideInInspector] public int equippingSoundIndex = 0;
+	[HideInInspector] public int explodingSoundIndex = 0;
+	[HideInInspector] public int holsteringSoundIndex = 0;
+	[HideInInspector] public int throwingSoundIndex = 0;
 
-	public var countdown : float = 5;
-	public var trigger : ExplodeTrigger;
-	public var armed : boolean = false;
-	public var sticky : boolean = false;
-	public var explosion : GameObject;
-	public var explosionLifetime : float = 5;
-	public var throwingForce : float = 20;
+	public float countdown = 5;
+	public ExplodeTrigger trigger;
+	public bool armed = false;
+	public bool sticky = false;
+	public GameObject explosion;
+	public float explosionLifetime = 5;
+	public float throwingForce = 20;
 
-	private var thrown : boolean = false;
-	private var exploded : boolean = false;
-	private var inventory : OSInventory;
-	private var bezier : Bezier;
-	private var bezierTimer : float;
-	private var distance : float;
-	private var startNormal : Vector3;
-	private var endNormal : Vector3;
-	private var hit : RaycastHit;
-	private var lineRenderer : LineRenderer;
+	private bool thrown = false;
+	private bool exploded = false;
+	private OSInventory inventory;
+	private Bezier bezier;
+	private float bezierTimer;
+	private float distance;
+	private Vector3 startNormal;
+	private Vector3 endNormal;
+	private RaycastHit hit;
+	private LineRenderer lineRenderer;
 	
-	public function get range () : float {
-		return item.attributes[rangeIndex].value;
+	public float range {
+		get { return item.attributes [rangeIndex].value; }
 	}
 	
-	public function get damage () : float {
-		return item.attributes[damageIndex].value;
+	public float damage {
+		get { return item.attributes[damageIndex].value; }
 	}
 
-	public function SetInventory ( inventory : OSInventory ) {
+	public void SetInventory ( OSInventory inventory ) {
 		this.inventory = inventory;
 	}
 
-	public function Throw () {
-		if ( !bezier || thrown ) { return; }
+	public void Throw () {
+		if ( bezier == null || thrown ) { return; }
 		
 		this.transform.parent = this.transform.root.parent;
 		
@@ -67,28 +68,30 @@ public class OSGrenade extends MonoBehaviour {
 		}
 
 		if ( inventory ) {
-			inventory.DecreaseItem ( this.GetComponent.< OSItem > () );
+			inventory.DecreaseItem ( this.GetComponent< OSItem > () );
 		}
 	}
 
-	public function Aim ( pos : Vector3, dir : Vector3 ) {
+	public void Aim ( Vector3 pos, Vector3 dir ) {
 		if ( thrown ) { return; }
-		
-		if ( Physics.Raycast ( pos, dir, hit, range ) ) {
+
+		RaycastHit hit = new RaycastHit ();
+
+		if ( Physics.Raycast ( pos, dir, out hit, range ) ) {
 			endNormal = hit.normal;
 			bezier = new Bezier ( this.transform.position, dir, Vector3.up, hit.point );
 		
-		} else if ( Physics.Raycast ( pos + dir * range, Vector3.down, hit, Mathf.Infinity ) ) {
+		} else if ( Physics.Raycast ( pos + dir * range, Vector3.down, out hit, Mathf.Infinity ) ) {
 			endNormal = hit.normal;
 			bezier = new Bezier ( this.transform.position, dir, Vector3.up, hit.point );
 		
 		}
 
-		if ( lineRenderer && bezier ) {
+		if ( lineRenderer  != null && bezier != null ) {
 			lineRenderer.SetVertexCount ( 32 );
 			
-			for ( var i : int = 0; i < 32; i++ ) {
-				var time : float = ( i * 1.0 ) * ( 1.0 / 32 );
+			for ( int i = 0; i < 32; i++ ) {
+				float time = ( i * 1.0f ) * ( 1.0f / 32f );
 
 				lineRenderer.SetPosition ( i, bezier.GetPointAtTime ( time ) );
 			}
@@ -97,7 +100,7 @@ public class OSGrenade extends MonoBehaviour {
 		distance = Vector3.Distance ( pos, hit.point ); 
 	}
 
-	public function Explode () {
+	public void Explode () {
 		if ( !exploded && explosion ) {
 			explosion.SetActive ( true );
 			
@@ -106,7 +109,7 @@ public class OSGrenade extends MonoBehaviour {
 				explosion.transform.position = this.transform.position;
 			
 			} else {
-				explosion = Instantiate ( explosion ) as GameObject;
+				explosion = (GameObject) Instantiate ( explosion );
 				explosion.transform.parent = this.transform.parent;
 				explosion.transform.position = this.transform.position;
 		
@@ -117,21 +120,21 @@ public class OSGrenade extends MonoBehaviour {
 		exploded = true;
 	}
 
-	public function OnCollisionEnter () {
+	public void OnCollisionEnter () {
 		if ( armed && trigger == ExplodeTrigger.OnCollision ) {
 			Explode ();
 		}
 	}
 
-	public function Start () {
-		lineRenderer = this.GetComponent.< LineRenderer > ();
+	public void Start () {
+		lineRenderer = this.GetComponent< LineRenderer > ();
 
 		if ( explosion ) {
 			explosion.SetActive ( false );
 		}
 	}
 
-	public function Update () {
+	public void Update () {
 		if ( exploded ) {
 			if ( renderer ) {
 				renderer.enabled = false;
@@ -161,7 +164,7 @@ public class OSGrenade extends MonoBehaviour {
 			
 			}
 
-			var revolutions : int = Mathf.RoundToInt ( ( distance * 2 ) / throwingForce );
+			int revolutions = Mathf.RoundToInt ( ( distance * 2 ) / throwingForce );
 
 			this.transform.localEulerAngles -= new Vector3 ( 0, 0, 360 * revolutions ) * bezierTimer;
 

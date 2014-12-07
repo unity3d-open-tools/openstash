@@ -1,14 +1,15 @@
-#pragma strict
+using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 
-import System.Collections.Generic;
-
-@CustomEditor ( OSGrenade )
-public class OSGrenadeInspector extends Editor {
-	override function OnInspectorGUI () {
-		var grenade : OSGrenade = target as OSGrenade;
+[CustomEditor (typeof(OSGrenade))]
+public class OSGrenadeInspector : Editor {
+	public override void OnInspectorGUI () {
+		OSGrenade grenade = (OSGrenade) target;
 
 		if ( !grenade.item ) {
-			grenade.item = grenade.GetComponent.< OSItem > ();
+			grenade.item = grenade.GetComponent< OSItem > ();
 
 			GUI.color = Color.red;
 			EditorGUILayout.LabelField ( "There is no OSItem component on this object!", EditorStyles.boldLabel );
