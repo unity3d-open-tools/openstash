@@ -109,7 +109,7 @@ public class InventoryUI extends MonoBehaviour {
 	// Consume item
 	public function Consume () {
 		if ( !dragging && selectedSlot && selectedSlot.item ) {
-			var healFactor : float = selectedSlot.item.GetAttribute ( "heal" );
+			var healFactor : float = selectedSlot.item.GetAttribute ( "Heal" );
 
 			if ( healFactor > 0 && healFactor < maxHealth ) {
 				health += healFactor;
